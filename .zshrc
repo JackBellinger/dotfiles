@@ -102,6 +102,54 @@ export PATH=$PATH:/home/jackson/lib/pdtoolkit-3.25/x86_64/bin
 # For a full list of active aliases, run `alias`.
 #
 
+Black='\033[0;30m'
+ Dark_Gray='\033[1;30m'
+ Red='\033[0;31m'
+ Light_Red='\033[1;31m'
+ Green='\033[0;32m'
+ Light_Green='\033[1;32m'
+ Brown_Orange='\033[0;33m'
+ Yellow='\033[1;33m'
+ Blue='\033[0;34m'
+ Light_Blue='\033[1;34m'
+ Purple='\033[0;35m'
+ Light_Purple='\033[1;35m'
+ Cyan='\033[0;36m'
+ Light_Cyan='\033[1;36m'
+ Light_Gray='\033[0;37m'
+ White='\033[1;37m'
+ End_Color='\033[0m'
+
+ # Global aliases -- These do not have to be at the beginning of the command line.
+ alias -g M='|more'
+ alias -g H='|head'
+ alias -g T='|tail'
+ alias -g P='ps aux'
+ alias -g G='|grep'
+
+ alias python3.8="/usr/local/opt/python@3.8/bin/python3"
+
+ alias c="clear"
+ alias r="reset"
+ alias q="exit"
+
+ alias todo="vim ~/todo.txt"
+
+ alias zconf="vim ~/.zshrc"
+ alias zsrc="exec zsh"
+
+ alias omzconf="vim ~/.oh-my-zsh"
+
+ alias vconf="vim ~/.vimrc"
+
+ alias sconf="vim ~/.ssh/config"
+
+ alias tconf="vim ~/.tmux.conf.local"
+ alias tsrc=":source-file ~/.tmux.conf"
+
+ alias l="${aliases[ls]} -Ath"
+ alias ll="${aliases[l]} -l"
+
 #ZSH aliases
  alias zconf="vim ~/.zshrc"
  alias zsrc="source ~/.zshrc"
@@ -109,32 +157,199 @@ export PATH=$PATH:/home/jackson/lib/pdtoolkit-3.25/x86_64/bin
 
 #Process aliases
  alias pss="ps aux | grep"
- 
-#Utility
- alias c="clear"
- alias r="reset"
+
+ alias psg="ps aux  | grep -i "
+ alias p="python3 "
+ alias pi="pip3 install"
+ alias cc="cargo check"
+ alias ccl="cargo clippy --all-features --all-targets"
+ alias ct="cargo test -- --nocapture"
+ alias cf="cargo fmt"
+ alias cb="cargo build"
+ alias cbr="cargo build --release"
+ alias rbt1="export RUST_BACKTRACE=1"
+ alias rbt0="unset RUST_BACKTRACE"
 
 #Utility
  alias a="atom ."
  alias v="vim"
 
 #Git commands
-gcjb()
-{
-    git clone "git@github.com:JacksonBellinger/$1"
-}
-#Quick cd
-edc()
-{
-    cd ~/code/$1/$2
-}
-gcpm()
-{
-	git commit -am $1
-	gpsup
-}
-export TERM=xterm-256color
-export ZSH_TMUX_AUTOSTART=true
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+function cbz() {
+     local prev_flags=$(echo $RUSTFLAGS)
+     export RUSTFLAGS="-Z macro-backtrace"
+     cargo build
+     export RUSTFLAGS=$prev_flags
+ }
+
+ function startvm() {
+     aws ec2 start-instances --instance-ids=$1
+ }
+ function stopvm() {
+     aws ec2 stop-instances --instance-ids=$1
+ }
+
+ #function iterm2_print_user_vars() {
+ #  iterm2_set_user_var gitBranch $((git branch 2> /dev/null) | grep \* | cut -c3-)
+ #}
+
+ function cdc() {
+     cd ; code ; $1
+ }
+
+ function cx() {
+     chmod +x $1
+ }
+
+
+ function gcjb() {
+     git clone git@github.com:jacksonbellinger/$1
+ }
+
+ function gcrj() {
+     git clone git@github.com:redjack/$1
+ }
+
+ function gda() {
+     #checks the diff of ever git repo in ~/code and prints the status for any that have changes
+     curdir=$(pwd)
+     for d in ~/code/* ; do
+          if [ -d $d ] ; then
+              cd $d
+              if [ -d "./.git" ] ; then
+                 if ! git diff-index --quiet HEAD --; then #if there are changes
+                     echo "\n\n${Brown_Orange}diffing $d${End_Color}"
+                     git status --porcelain
+                 fi
+             fi
+         fi
+     done
+     cd $curdir
+ }
+
+function gpa() {
+     #Crawls ~/code directory, updating branches and pulling updates for all git repos
+     curdir=$(pwd)
+     for d in ~/code/* ; do
+         if [ -d $d ] ; then
+             cd $d
+             if [ -d "./.git" ] ; then
+                 echo "\n\n ${Red}updating $d${End_Color}"
+                 git remote -v update --prune
+                 gfab
+             fi
+         fi
+     done
+     cd $curdir
+ }
+
+ function contains() {
+     [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && exit(0) || exit(1)
+ }
+
+ function list_include_item {
+   local list="$1"
+   local item="$2"
+   if [[ $list =~ (^|[[:space:]])"$item"($|[[:space:]]) ]] ; then
+     # yes, list include item
+     result=0
+   else
+     result=1
+   fi
+   return $result
+ }
+
+function gfab() {
+     #git fetch all branches
+     currbranch=$(git rev-parse --abbrev-ref HEAD)
+     git branch -r | grep -v '\->' | while read remote; do
+         branch_name="${remote#origin/}"
+         if [[ -n "$(git branch --list ${branch})" ]]; then #if the branch dne on local
+             git branch --track "$branch_name" "$remote";
+         fi
+         UPSTREAM=${1:-'@{u}'}
+         LOCAL=$(git rev-parse @)
+         REMOTE=$(git rev-parse "$UPSTREAM")
+         BASE=$(git merge-base @ "$UPSTREAM")
+
+         if [ $LOCAL = $REMOTE ]; then
+             echo "Up-to-date"
+         elif [ $LOCAL = $BASE ]; then
+             echo "Need to pull"
+             git pull
+         elif [ $REMOTE = $BASE ]; then
+             echo "Need to push"
+             read -p "Git pull?" yn
+             case $yn in
+                 [Yy]* ) git pull; break;;
+                 [Nn]* ) exit;;
+                 * ) echo "Please answer yes or no.";;
+             esac
+         else
+             echo "Diverged"
+         fi
+         if git diff-index --quiet HEAD --; then #if there are no local changes to the current branch
+             git checkout "${remote#origin/}";
+             git pull --ff-only ;
+         else
+             echo "$currbranch has changes, please commit before I can pull $branch_name"
+         fi
+     done
+     git checkout $currbranch
+ }
+
+ function git_current_branch() {
+   ref=$(git symbolic-ref HEAD 2> /dev/null) || \
+   ref=$(git rev-parse --short HEAD 2> /dev/null) || return
+   echo ${ref#refs/heads/}
+ }
+
+function gcpm() {
+     #cf && ccl && ct
+     #git commit(a) and push w/ message (add an arg to disable precommit hooks)
+     if [ -z "$2" ]; then
+         git commit -am "$1"
+     else
+         git commit -anm "$1"
+     fi
+     git push --set-upstream origin $(git_current_branch) #set upstream in case the branch is new
+ }
+
+ function grh() {
+     git reset --hard HEAD
+ }
+ function keygen() {
+  ssh-keygen -t rsa -b 4096 -C $1
+ }
+
+ function fingerprint() {   ssh-keygen -lf $1 -E md5 }
+
+ function pjson() {
+     echo "$1" | python -m json.tool
+ }
+
+ function uz() {
+     if [ ! -f "$1" ] ; then
+         echo "'$1' does not exist."
+         return 1
+     fi
+
+     case "$1" in
+         *.tar.bz2)   tar xvjf "$1"   ;;
+         *.tar.xz)    tar xvJf "$1"   ;;
+         *.tar.gz)    tar xvzf "$1"   ;;
+         *.gz)        gunzip "$1"     ;;
+         *.tar)       tar xvf "$1"    ;;
+         *.tbz2)      tar xvjf "$1"   ;;
+         *.tgz)       tar xvzf "$1"   ;;
+         *.zip)       unzip "$1"      ;;
+         *.Z)         uncompress "$1" ;;
+         *.xz)        xz -d "$1"      ;;
+         *.a)         ar x "$1"       ;;
+         *.rar)       rar x "$1"      ;;
+         *.7z)        7z x "$1"       ;;
+         *.bz2)       bunzip2 "$1"    ;;
+         *)           echo "Unable to extract '$1'." ;;
+     esac
+ }
