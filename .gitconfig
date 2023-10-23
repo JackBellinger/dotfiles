@@ -1,0 +1,8 @@
+[core]
+    editor = vim
+    pager = less
+
+[user]
+	name = jackbellinger
+    email = 5804016+jackbellinger@users.noreply.github.com
+
