@@ -5,8 +5,8 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+# Add usr/local, pip user bin, and cargo bin to path
+export PATH=$HOME/bin:/usr/local/bin:/$HOME/.local/bin:$HOME/.cargo/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -50,7 +50,7 @@ DISABLE_UPDATE_PROMPT="true"
 # DISABLE_AUTO_TITLE="true"
 
 # Uncomment the following line to enable command auto-correction.
-ENABLE_CORRECTION="true"
+#ENABLE_CORRECTION="true"
 
 # Uncomment the following line to display red dots whilst waiting for completion.
 COMPLETION_WAITING_DOTS="true"
@@ -143,13 +143,15 @@ alias -g H='|head'
 alias -g T='|tail'
 alias -g P='ps aux'
 alias -g G='|grep'
-alias -g BG='2>&1 | tee log-$(datetime).out'
+#alias -g BG='2>&1 | tee log-$(datetime).out'
 
 alias c="clear"
 alias r="reset"
 alias q="exit"
 alias l="${aliases[ls]} -Ath"
 alias ll="${aliases[l]} -l"
+alias lls="${aliases[l]} -l | sort -k9,9"
+
 alias psg="psgrep" #https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/systemadmin#functions
 
 alias zconf="vim ~/.zshrc"
@@ -294,12 +296,26 @@ function keygen() {
     ssh-keygen -t ed25519 -b 4096 -C $1
 }
 
-function fingerprint() {   
-    ssh-keygen -lf $1 -E md5 
+function fingerprint() {
+    ssh-keygen -lf $1 -E md5
 }
 
 function pjson() {
     echo "$1" | python -m json.tool
+}
+
+function ffmpeg_c() {
+    local encoding_lib=""
+    case $2 in
+        "webp")
+             encoding_lib="libwebp";;
+        "avif")
+            encoding_lib="libaom-av1 -still-picture 1";;
+        *)
+              echo "unsupported encoding";;
+    esac
+    echo "$encoding_lib: ${1%.*}.$2"
+    ffmpeg -i $1  -c:v $encoding_lib ${1%.*}.$2
 }
 
 function uz() {
@@ -329,3 +345,7 @@ function uz() {
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
