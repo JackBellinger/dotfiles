@@ -135,7 +135,7 @@ End_Color='\033[0m'
 
 export iso8601_format="%Y-%m-%dT%H:%M:%S%:z"
 alias datetime="date +$iso8601_format"
-alias unixtime="date -u +'%Y-%m-%dT%H:%M:%SZ'"
+alias unixtime="echo \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\" | sed 's/Z/.000Z/'"
 
 # Global aliases -- These do not have to be at the beginning of the command line.
 alias -g M='|more'
@@ -166,6 +166,20 @@ alias todo="vim ~/todo.txt"
 
 function cdc() {
     cd ; code ; $1
+}
+
+function delete_all_in_except() { 
+    dirpath="$(realpath $1)"
+    foundfiles=$(find $dirpath -mindepth 1 -type f ! -regex ".*/$2.*" -o -type d ! -regex ".*/$2.*")
+    #echo "$2(/*?)"
+    echo $foundfiles
+    #echo "deleting everything in $dirpath except $2/*" 
+    if test -d "$dirpath" && (test -f "$dirpath/$2" || test -d "$dirpath/$2"); then
+        find $dirpath -mindepth 1 -type f ! -regex ".*/$2.*" -delete -o -type d ! -regex ".*/$2.*" -delete
+    else
+        echo "Invalid args: pass a directory & filename"
+        return 1
+    fi
 }
 
 #Git
