@@ -7,10 +7,14 @@ sudo apt install -y git net-tools rsync
 
 #Shell
 sudo apt install -y zsh
-#get nerdfont patched mononoki
+#get nerdfont patched mononoki & firacode
 curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Mononoki.tar.xz
 tar -xf Mononoki.tar.xz -C ~/.local/share/fonts
 rm Mononoki.tar.xz
+curl -OL https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/FiraCode.tar.xz
+tar -xf FiraCode.tar.xz -C ~/.local/share/fonts
+rm FiraCode.tar.xz
+
 
 #install oh my zsh
 sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
