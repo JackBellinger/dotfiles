@@ -1,0 +1,152 @@
+{
+    "cloudcode.updateChannel": "Insiders",
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": true,
+        "markdown": false,
+        "scminput": false
+    },
+    "github.copilot.advanced": {
+    },
+    "telemetry.telemetryLevel": "off",
+    "workbench.enableExperiments": false,
+    "workbench.cloudChanges.continueOn": "off",
+    "workbench.cloudChanges.autoResume": "off",
+    "npm.fetchOnlinePackageInfo": false,
+
+// === Whitespace ===
+    "editor.insertSpaces": false,
+    "editor.comments.insertSpace": true,
+    "editor.stickyTabStops": true,
+    "editor.renderWhitespace": "all",
+    "files.trimTrailingWhitespace": true,
+    "editor.unicodeHighlight.nonBasicASCII": true,
+
+// === Editor Interface ===
+    "editor.wordWrapColumn": 120,
+    "editor.wordWrap": "bounded",
+    "editor.minimap.enabled": false,
+    // Tabs
+    "workbench.editor.highlightModifiedTabs": true,
+    "workbench.editor.scrollToSwitchTabs": true,
+    "workbench.editor.tabCloseButton": "off",
+    "workbench.editor.wrapTabs": true,
+    "workbench.editor.tabSizing": "shrink",
+    "workbench.sideBar.location": "right",
+    // Zen Mode
+    "zenMode.fullScreen": false,
+    "zenMode.centerLayout": false,
+    "zenMode.showTabs": "none",
+
+// === Keybinds ===
+    "files.autoSave": "onWindowChange",
+    "editor.autoClosingQuotes": "beforeWhitespace",
+    "editor.mouseWheelZoom": true,
+    "editor.dragAndDrop": false,
+    "editor.emptySelectionClipboard": true,
+    "workbench.settings.openDefaultKeybindings": true,
+
+// === Suggestions ===
+    "editor.inlineSuggest.enabled": true,
+
+// === Themes ===
+    "editor.fontFamily": "FiraCode Nerd Font",
+    "editor.fontLigatures": true,
+    "workbench.preferredLightColorTheme": "Default Light Modern",
+    "workbench.preferredDarkColorTheme": "Solarized Dark",
+    "workbench.colorTheme": "Solarized Dark",
+    "workbench.colorCustomizations": {
+        "[Solarized Dark]": {
+            "editorWhitespace.foreground": "#00aeff18",
+            "editorInfo.background": "#38a5597c",
+            "editorWarning.background": "#c5cf3670",
+            "editorError.background": "#ac3a1765",
+            "editorError.foreground": "#520505", // squiggly line
+            "editor.selectionBackground": "#e788ff7c", //Currently SELECTED text
+            "editor.selectionHighlightBackground": "#ff00005b", //Same content as selection
+            "editor.findMatchBackground": "#00cc44a8", //Current SEARCH MATCH
+            "editor.findMatchHighlightBackground": "#ff7b00a1", //Other SEARCH MATCHES
+            "numberedBookmarks.lineBackground": "#007700"
+        },
+        "[Default Light Modern]": {
+            "editorWhitespace.foreground": "#00aeff18",
+            "editorInfo.background": "#38a5597c",
+            "editorWarning.background": "#c5cf3670",
+            "editorError.background": "#ac3a1765",
+            "editorError.foreground": "#520505", // squiggly line
+            "editor.selectionBackground": "#e788ff7c", //Currently SELECTED text
+            "editor.selectionHighlightBackground": "#ff00005b", //Same content as selection
+            "editor.findMatchBackground": "#00cc44a8", //Current SEARCH MATCH
+            "editor.findMatchHighlightBackground": "#ff7b00a1", //Other SEARCH MATCHES
+            "numberedBookmarks.lineBackground": "#007700"
+        }
+    },
+// === Rust ===
+    "rust-analyzer.debug.openDebugPane": true,
+    "rust-analyzer.inlayHints.lifetimeElisionHints.enable": "skip_trivial",
+    "rust-analyzer.interpret.tests": true,
+    "rust-analyzer.restartServerOnConfigChange": true,
+    "rust-analyzer.inlayHints.parameterHints.enable": false,
+    "editor.parameterHints.enabled": false,
+    "rust-analyzer.inlayHints.typeHints.enable": false,
+    "rust-analyzer.hover.actions.gotoTypeDef.enable": false,
+    "rust-analyzer.inlayHints.chainingHints.enable": false,
+    "rust-analyzer.highlightRelated.references.enable": false,
+// === Svelte ===
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "svelte.enable-ts-plugin": true,
+    "prettier.htmlWhitespaceSensitivity": "strict",
+    "prettier.printWidth": 120,
+    "prettier.quoteProps": "consistent",
+    "prettier.tabWidth": 4,
+    "prettier.useTabs": true,
+    "files.associations": {
+        "*.sxv": "markdown",
+        "*.svx": "markdown"
+    },
+
+
+
+
+    "evenBetterToml.rules": [
+    ],
+    "evenBetterToml.formatter.allowedBlankLines": 2,
+    "evenBetterToml.formatter.columnWidth": 128,
+    "evenBetterToml.schema.associations": {
+    },
+    "evenBetterToml.schema.links": true,
+    "evenBetterToml.semanticTokens": true,
+    "evenBetterToml.formatter.reorderKeys": true,
+    "evenBetterToml.formatter.reorderArrays": true,
+
+// === C/C++ ===
+    "cmake.configureOnOpen": false,
+    "editor.unicodeHighlight.allowedCharacters": {
+        "─": true,
+        "┴": true,
+        "┬": true,
+        "│": true,
+        "┐": true,
+        "┌": true,
+        "┤": true,
+        "├": true,
+        "┼": true,
+        "└": true,
+        "┘": true
+    },
+
+    //"settings.cycle": [
+    //    {
+    //        "id": "colorTheme", // must be unique
+    //        "overrideWorkspaceSettings": false,
+    //        "values": [
+    //            {
+    //                "workbench.colorTheme": "Default Dark+"
+    //            },
+    //            {
+    //                "workbench.colorTheme": "Default Light+"
+    //            }
+    //        ]
+    //    }
+    //],
+}
