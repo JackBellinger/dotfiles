@@ -43,5 +43,7 @@ pip3 install matplotlib
 curl https://sh.rustup.rs -sSf | sh -s -- -y
 reset
 
+cargo install eza
+
 #Webdev
 sudo apt install -y nodejs npm
