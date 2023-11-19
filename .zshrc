@@ -66,7 +66,24 @@ DISABLE_UNTRACKED_FILES_DIRTY="true"
 # "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
 # or set a custom format using the strftime function format specifications,
 # see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
+HIST_STAMPS="%Y-%m-%dT%H:%M:%S%:z"
+
+# #Enable command time tracking
+# setopt inc_append_history_time
+
+# function preexec() {
+#   timer=$(($(date +%s%0N)/1000000))
+# }
+
+# function precmd() {
+#   if [ $timer ]; then
+#     now=$(($(date +%s%0N)/1000000))
+#     elapsed=$(($now-$timer))
+
+#     export RPROMPT="%F{cyan}${elapsed}ms %{$reset_color%}"
+#     unset timer
+#   fi
+# }
 
 # Would you like to use another custom folder than $ZSH/custom?
 # ZSH_CUSTOM=/path/to/new-custom-folder
@@ -115,6 +132,8 @@ export LESS="-FX -asrRix8 --mouse --wheel-lines=3"
 # users are encouraged to define aliases within the ZSH_CUSTOM folder.
 # For a full list of active aliases, run `alias`.
 #
+
+#TODO write a help function to list all custom functions and their use
 
 function color-palette() {
    for i in {0..255}; do print -Pn "%K{$i}  %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%6)):#3}:+$'\n'}; done
