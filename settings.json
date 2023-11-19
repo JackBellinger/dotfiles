@@ -105,9 +105,6 @@
         "*.svx": "markdown"
     },
 
-
-
-
     "evenBetterToml.rules": [
     ],
     "evenBetterToml.formatter.allowedBlankLines": 2,
@@ -133,6 +130,10 @@
         "┼": true,
         "└": true,
         "┘": true
+    },
+    "editor.codeActionsOnSave": {
+        //TODO
+
     },
 
     //"settings.cycle": [
