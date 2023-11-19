@@ -6,3 +6,17 @@
 	name = jackbellinger
     email = 5804016+jackbellinger@users.noreply.github.com
 
+[color]
+status = auto
+
+[color "status"]
+added = green
+changed = yellow
+untracked = magenta
+deleted = red
+
+[color "diff"]
+added = green
+changed = yellow
+untracked = magenta
+deleted = red
