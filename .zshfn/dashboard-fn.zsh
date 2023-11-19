@@ -51,6 +51,13 @@ function _gitlog {
 	#-e $'s/\)\\(.*?\\)\\(\(\d\w\)\\)/\)\\1aaaa\\2\(/'
 }
 
+Red='\033[0;31m'
+red=$(tput setaf 1)    # \003
+green=$(tput setaf 2)	#\002
+white=$(tput setaf 7)  # \004
+Light_Red='\033[1;31m'
+Green='\033[0;32m'
+End_Color='\033[0m'
 function _gitstatus {
 	local max_status_lines=$1
 	max_status_lines=${max_status_lines%.*}
@@ -60,12 +67,17 @@ function _gitstatus {
 
 	if [[ -n "$(git status --porcelain)" ]]; then
 		local unstaged staged
-		unstaged=$(git diff --color="always" --compact-summary --stat=$COLUMNS | sed -e '$d')
+		unstaged=$(git diff --color="always" --compact-summary --stat=$COLUMNS | sed -e '$d' \
+		-e "s/^[ \t]*//" \
+		-re "s/^([^ ]*)/$(printf '\033[0;31m')\\1$(printf '\033[0m')/") #Strip leading whitespace & color red
+
 		staged=$(git diff --staged --color="always" --compact-summary --stat=$COLUMNS | sed -e '$d' \
-			-e $'s/^ /+/') # add marker for staged files
+			-e "s/^[ \t]*//" \
+			-re "s/^([^ ]*)/$(printf '\033[0;32m')\\1$(printf '\033[0m')/" \
+			-e $'s/^ /+/' ) # add marker for staged files
 		local diffs
 		if [[ -n "$unstaged" && -n "$staged" ]]; then
-			diffs="$unstaged\n$staged"
+			diffs="$staged\n$unstaged"
 		elif [[ -n "$unstaged" ]]; then
 			diffs="$unstaged"
 		elif [[ -n "$staged" ]]; then
@@ -77,9 +89,16 @@ function _gitstatus {
 			-e $'s/\\(gone\\)/\033[1;31mD\033[0m/g' \
 			-e $'s/\\(new\\)/\033[1;32mN\033[0m/g' \
 			-e 's/ Bin //g' \
-			-e $'s/ \\| Unmerged /\033[1;31m \033[0m/'\
 			-Ee $'s|([^/+]*)(/)|\033[1;36m\\1\033[1;33m\\2\033[0m|g' \
 			-e $'s/^\\+/\033[1;35m \033[0m/')
+
+		# gs_out=$(git status | sed \
+		# -e "s/Changes to be committed://" \
+		# -e "s/  (use "git restore --staged <file>..." to unstage)//" \
+		# -e "s/Changes to be committed://" \
+		# -e "s/Changes to be committed://" \
+		# -e "s/Changes to be committed://")
+			# -e $'s/ \\| Unmerged /\033[1;31m \033[0m/'\
 		# if [[ $(echo "$status_output" | wc -l) -gt $max_status_lines ]]; then
 		# 	local shortened
 		# 	shortened="$(echo "$status_output" | head -n"$max_status_lines")"
