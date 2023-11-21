@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
-
+# Based on Magic-Enter by @dufferzafar (MIT License)
+# https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/magic-enter
+# modified to limit lines and columns to fit in terminal size, and to colorize git status
 # draws a separator line with terminal width
 function _separator {
 	local truncate_n=$1
@@ -51,13 +53,6 @@ function _gitlog {
 	#-e $'s/\)\\(.*?\\)\\(\(\d\w\)\\)/\)\\1aaaa\\2\(/'
 }
 
-Red='\033[0;31m'
-red=$(tput setaf 1)    # \003
-green=$(tput setaf 2)	#\002
-white=$(tput setaf 7)  # \004
-Light_Red='\033[1;31m'
-Green='\033[0;32m'
-End_Color='\033[0m'
 function _gitstatus {
 	local max_status_lines=$1
 	max_status_lines=${max_status_lines%.*}
@@ -159,9 +154,6 @@ function _magic_dashboard {
 }
 
 #───────────────────────────────────────────────────────────────────────────────
-
-# Based on Magic-Enter by @dufferzafar (MIT License)
-# https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/magic-enter
 
 function _magic_enter {
 	# GUARD only in PS1 and when BUFFER is empty
