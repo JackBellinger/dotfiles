@@ -43,6 +43,7 @@ pip3 install matplotlib
 curl https://sh.rustup.rs -sSf | sh -s -- -y
 reset
 
+cargo install cargo-audit
 cargo install eza
 
 #Webdev
