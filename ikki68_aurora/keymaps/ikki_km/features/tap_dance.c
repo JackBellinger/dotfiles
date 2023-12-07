@@ -1,5 +1,6 @@
 #include "tap_dance.h"
 #include "macro.h"
+#include "timer.h"
 
 td_state_t cur_dance(tap_dance_state_t *state) {
     if (state->count == 1) {
@@ -85,6 +86,46 @@ void taskbar_reset(tap_dance_state_t *state, void *user_data) {
     taskbar_tap_state.state = TD_NONE;
 }
 
+// === TIMER ===
+static td_tap_t timer_tap_state = {
+    .is_press_action = true,
+    .state = TD_NONE
+};
+
+void timer_each(tap_dance_state_t *state, void *user_data) {
+    timer_tap_state.state = cur_dance(state);
+    switch (timer_tap_state.state) {
+        // case TD_SINGLE_TAP: send_timer(1); break;
+        // case TD_DOUBLE_TAP: send_timer(2); break;
+        // case TD_TRIPLE_TAP: send_timer(3); break;
+        // case TD_QUAD_TAP: send_timer(4); break;
+        default: break;
+    }
+}
+
+void timer_finished(tap_dance_state_t *state, void *user_data) {
+    timer_tap_state.state = cur_dance(state);
+    switch (timer_tap_state.state) {
+        case TD_SINGLE_TAP: send_timer(1); break;
+        case TD_DOUBLE_TAP: send_timer(2); break;
+        case TD_TRIPLE_TAP: send_timer(3); break;
+        case TD_QUAD_TAP: send_timer(4); break;
+        default: break;
+    }
+}
+
+void timer_reset(tap_dance_state_t *state, void *user_data) {
+    switch (taskbar_tap_state.state) {
+        // case TD_SINGLE_TAP: unregister_code(KC_X); break;
+        // case TD_SINGLE_HOLD: unregister_code(KC_LCTL); break;
+        // case TD_DOUBLE_TAP: unregister_code(KC_ESC); break;
+        // case TD_DOUBLE_HOLD: unregister_code(KC_LALT); break;
+        // case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_X); break;
+        default: break;//SEND_STRING(SS_TAP(X_ENT));
+    }
+    timer_tap_state.state = TD_NONE;
+}
+
 // === MACRO-TAPS ===
 static td_tap_t macro_tap_state = {
     .is_press_action = true,
@@ -112,5 +153,6 @@ void macro_reset(tap_dance_state_t *state, void *user_data) {
 tap_dance_action_t tap_dance_actions[] = {
     [PLAY] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, play_finished, taskbar_reset),
     [TASKBAR] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, taskbar_finished, taskbar_reset),
+    [TIMER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, timer_finished, timer_reset),
     [MACRO] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, macro_finished, macro_reset)
 };

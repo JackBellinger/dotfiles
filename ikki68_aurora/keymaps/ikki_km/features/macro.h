@@ -11,7 +11,8 @@
 /* Define any additional keycodes that don't have a void func with no params
 	LLOCK has to be last in this table to init the array mapping keys to funcs*/
 #define KEYCODES_TABLE \
-	KEYCODE(LLOCK,			SAFE_RANGE + 5)
+	KEYCODE(KC_TIMER,			SAFE_RANGE + 5) \
+	KEYCODE(LLOCK,			SAFE_RANGE + 6)
 
 /* Generate function prototypes */
 #define MACRO(a, b, c) void c(void);
@@ -27,9 +28,9 @@ typedef enum {
 	#undef KEYCODE
 } custom_keycodes;
 
-typedef void (*operate)(void);
+typedef void (*func_p)(void);
 struct action {
-  operate map[LLOCK - SAFE_RANGE];
+  func_p map[LLOCK - SAFE_RANGE];
 };
 struct action macros;
 

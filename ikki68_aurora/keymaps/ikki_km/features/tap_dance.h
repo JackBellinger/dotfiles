@@ -25,7 +25,8 @@ typedef struct {
 enum {
     PLAY,
     TASKBAR,
-    MACRO
+    TIMER,
+    MACRO,
 };
 
 td_state_t cur_dance(tap_dance_state_t *state);
@@ -38,8 +39,13 @@ void play_reset(tap_dance_state_t *state, void *user_data);
 void taskbar_finished(tap_dance_state_t *state, void *user_data);
 void taskbar_reset(tap_dance_state_t *state, void *user_data);
 
+void timer_each(tap_dance_state_t *state, void *user_data);
+void timer_finished(tap_dance_state_t *state, void *user_data);
+void timer_reset(tap_dance_state_t *state, void *user_data);
+
 void macro_finished(tap_dance_state_t *state, void *user_data);
 void macro_reset(tap_dance_state_t *state, void *user_data);
+
 
 /* Return an integer that corresponds to what kind of tap dance should be executed.
  *

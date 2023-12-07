@@ -1,5 +1,4 @@
 #pragma once
-#include "quantum.h"
 #include QMK_KEYBOARD_H
 
 
@@ -7,7 +6,6 @@
 // #include "keyrecords/wrappers.h"
 // #include "keyrecords/process_records.h"
 // #include "callbacks.h"
-#include "features/layer_lock.h"
 
 enum {
     alphas = 0,
@@ -15,12 +13,15 @@ enum {
     etc = 2
 } layers;
 
-
 #include "features/macro.h"
+#include "features/layer_lock.h"
 
 #ifdef TAP_DANCE_ENABLE
 #    include "features/tap_dance.h"
 #endif
+//#ifdef TIMERS_ENABLE
+#include "features/timer.h"
+//#endif
 // #if defined(RGBLIGHT_ENABLE)
 // #    include "rgb/rgb_stuff.h"
 // #endif
