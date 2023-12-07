@@ -6,7 +6,7 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 # Add usr/local, pip user bin, and cargo bin to path
-export PATH=$HOME/bin:/usr/local/bin:/$HOME/.local/bin:$HOME/.cargo/bin:$PATH
+export PATH=$HOME/.local/bin:$HOME/bin:/usr/local/bin:/$HOME/.local/bin:$HOME/.cargo/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -245,6 +245,8 @@ function pjson() {
 function ffmpeg_c() {
     local encoding_lib=""
     case $2 in
+        "png")
+             encoding_lib="png";;
         "webp")
              encoding_lib="libwebp";;
         "avif")
