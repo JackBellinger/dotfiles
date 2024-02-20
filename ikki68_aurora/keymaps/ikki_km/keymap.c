@@ -1,9 +1,7 @@
-
-
 #include "jack.h"
 // Matrix diagram for Wuque Ikki68 Aurora
 /**
-```
+```	
 ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐┌───┬───┐	 ┌───────┐
 │00 │01 │02 │03 │04 │05 │06 │07 │08 │09 │0A │0B │0C │0D │2D ││0E │0F │	 │0D	 │ 2u Backspace
 ├───┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴───┤├───┼───┤	 └─┬─────┤
@@ -26,18 +24,18 @@
 #include QMK_KEYBOARD_H
 // KC_NO used in empty split key options
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-	[0] = LAYOUT_all(
+	[ALPHAS] = LAYOUT_all(
 		KC_ESC, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0, KC_MINS, KC_EQL, KC_GRV, KC_BSPC, TD(PLAY), KC_VOLU,
 		KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P, KC_LBRC, KC_RBRC, KC_BSLS, TD(TASKBAR), KC_VOLD,
 		CW_TOGG, KC_A, KC_S, KC_D, KC_F, KC_G, KC_H, KC_J, KC_K, KC_L, KC_SCLN, KC_QUOT, KC_ENT,
 		KC_LSFT, KC_NO, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH, KC_RSFT, KC_NO, KC_UP,
-		KC_LCTL, KC_LGUI, KC_LALT, KC_NO, KC_SPC, KC_NO, SC_RAPC, MO(1), KC_RCTL, KC_LEFT, KC_DOWN, KC_RGHT
+		TD(CTRL), KC_LGUI, TD(ALT), KC_NO, KC_SPC, KC_NO, SC_RAPC, MO(FUNCS), KC_RCTL, KC_LEFT, KC_DOWN, KC_RGHT
 	),						   //space		  space
-	[1] = LAYOUT_all(
-		QK_BOOT, KC_F1, KC_F2, KC_F3, KC_F4, KC_F5, KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, KC_F11, KC_F12, QK_LEAD, KC_DEL, RGB_TOG, KC_MNXT,
-		_______, _______, _______, _______, _______, TD(TIMER), _______, _______, _______, _______, _______, _______, _______, KC_WSCH, TD(MACRO), KC_MPRV,
+	[FUNCS] = LAYOUT_all(
+		QK_BOOT, KC_F1, KC_F2, KC_F3, KC_F4, KC_F5, KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, KC_F11, KC_F12, TURBO, KC_DEL, RGB_TOG, KC_BTN1,
+		_______, _______, _______, _______, _______, TD(TIMER), _______, _______, _______, _______, _______, _______, _______, KC_WSCH, TD(MACRO), KC_BTN2,
 		KC_CAPS, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, LLOCK,
-		_______, KC_NO, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_NO, KC_PGUP,
+		_______, KC_NO, _______, _______, _______, _______, _______, _______, _______, KC_WBAK, KC_WFWD, LCTL(KC_F), _______, KC_NO, KC_PGUP,
 		_______, _______, _______, KC_NO, _______, KC_NO, _______, _______, _______, KC_HOME, KC_PGDN, KC_END
 	),
 };
@@ -50,6 +48,8 @@ extern struct action macros;
 */
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 	if (!process_layer_lock(keycode, record, LLOCK)) { return false; }
+	if (!process_mouse_turbo_click(keycode, record, TURBO)) { return false; }
+	// if (!process_mouse_turbo_click(keycode, record)) { return false; }
 	if (KC_isMacro(keycode)) {
 		if (record->event.pressed) {
 			send_macro(keycode);
@@ -93,4 +93,11 @@ bool led_update_user(led_t led_state) {
 		}
 	#endif
 	return true;
+}
+
+uint16_t keycode_config(uint16_t keycode) {
+    return keycode;
+}
+uint8_t mod_config(uint8_t mod) {
+    return mod;
 }

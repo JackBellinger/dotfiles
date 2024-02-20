@@ -1,158 +1,222 @@
-#include "tap_dance.h"
-#include "macro.h"
-#include "timer.h"
+#include "jack.h"
 
 td_state_t cur_dance(tap_dance_state_t *state) {
-    if (state->count == 1) {
-        if (state->interrupted || !state->pressed) return TD_SINGLE_TAP;
-        // Key has not been interrupted, but the key is still held. Means you want to send a 'HOLD'.
-        else return TD_SINGLE_HOLD;
-    } else if (state->count == 2) {
-        // TD_DOUBLE_SINGLE_TAP is to distinguish between typing "pepper", and actually wanting a double tap
-        // action when hitting 'pp'. Suggested use case for this return value is when you want to send two
-        // keystrokes of the key, and not the 'double tap' action/macro.
-        if (state->interrupted) return TD_DOUBLE_SINGLE_TAP;
-        else if (state->pressed) return TD_DOUBLE_HOLD;
-        else return TD_DOUBLE_TAP;
-    }
+	if (state->count == 1) {
+		if (!state->pressed) return TD_SINGLE_TAP;
+		if (state->interrupted) return TD_TAP_INTERRUPT;
+		// Key has not been interrupted, but the key is still held. Means you want to send a 'HOLD'.
+		else return TD_SINGLE_HOLD;
+	} else if (state->count == 2) {
+		// TD_DOUBLE_SINGLE_TAP is to distinguish between typing "pepper", and actually wanting a double tap
+		// action when hitting 'pp'. Suggested use case for this return value is when you want to send two
+		// keystrokes of the key, and not the 'double tap' action/macro.
+		if (state->interrupted) return TD_DOUBLE_SINGLE_TAP;
+		else if (state->pressed) return TD_DOUBLE_HOLD;
+		else return TD_DOUBLE_TAP;
+	}
 
-    // Assumes no one is trying to type the same letter three times (at least not quickly).
-    // If your tap dance key is 'KC_W', and you want to type "www." quickly - then you will need to add
-    // an exception here to return a 'TD_TRIPLE_SINGLE_TAP', and define that enum just like 'TD_DOUBLE_SINGLE_TAP'
-    if (state->count == 3) {
-        if (state->interrupted || !state->pressed) return TD_TRIPLE_TAP;
-        else return TD_TRIPLE_HOLD;
-    } else if (state->count == 4) {
-        if (state->interrupted || !state->pressed) return TD_QUAD_TAP;
-        else return TD_QUAD_HOLD;
-    } else return TD_UNKNOWN;
+	// Assumes no one is trying to type the same letter three times (at least not quickly).
+	// If your tap dance key is 'KC_W', and you want to type "www." quickly - then you will need to add
+	// an exception here to return a 'TD_TRIPLE_SINGLE_TAP', and define that enum just like 'TD_DOUBLE_SINGLE_TAP'
+	if (state->count == 3) {
+		if (state->interrupted || !state->pressed) return TD_TRIPLE_TAP;
+		else return TD_TRIPLE_HOLD;
+	} else if (state->count == 4) {
+		if (state->interrupted || !state->pressed) return TD_QUAD_TAP;
+		else return TD_QUAD_HOLD;
+	} else return TD_UNKNOWN;
 }
+
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
+	switch (keycode) {
+	#define TAPDANCE(a, b) \
+		case TD(a): return b;
+	TD_TABLE
+	#undef TAPDANCE
+		default:
+			return TAPPING_TERM;
+	}
+}
+#define TAPDANCE(a, b) \
+    static td_tap_t a ## _tap_state = { .is_press_action = true, .state = TD_NONE };
+TD_TABLE
+#undef TAPDANCE
+
 
 // === PLAY ===
-static td_tap_t play_tap_state = {
-    .is_press_action = true,
-    .state = TD_NONE
-};
 
-void play_finished(tap_dance_state_t *state, void *user_data) {
-    play_tap_state.state = cur_dance(state);
-    switch (play_tap_state.state) {
-        case TD_SINGLE_TAP: SEND_STRING(SS_TAP(X_MEDIA_PLAY_PAUSE)); break;
-        case TD_DOUBLE_TAP: SEND_STRING(SS_TAP(X_MEDIA_NEXT_TRACK)); break;
-        case TD_TRIPLE_TAP: SEND_STRING(SS_TAP(X_MEDIA_PREV_TRACK)); break;
-        case TD_QUAD_TAP: SEND_STRING(SS_TAP(X_AUDIO_MUTE)); break;
-        default: break;
-    }
+void PLAY_finished(tap_dance_state_t *state, void *user_data) {
+	PLAY_tap_state.state = cur_dance(state);
+	switch (PLAY_tap_state.state) {
+		case TD_SINGLE_TAP: SEND_STRING(SS_TAP(X_MEDIA_PLAY_PAUSE)); break;
+		case TD_DOUBLE_TAP: SEND_STRING(SS_TAP(X_MEDIA_NEXT_TRACK)); break;
+		case TD_TRIPLE_TAP: SEND_STRING(SS_TAP(X_MEDIA_PREV_TRACK)); break;
+		case TD_QUAD_TAP: SEND_STRING(SS_TAP(X_AUDIO_MUTE)); break;
+		default: break;
+	}
 }
 
-void play_reset(tap_dance_state_t *state, void *user_data) {
-    switch (play_tap_state.state) {
-        // case TD_SINGLE_TAP: unregister_code(KC_X); break;
-        // case TD_SINGLE_HOLD: unregister_code(KC_LCTL); break;
-        // case TD_DOUBLE_TAP: unregister_code(KC_ESC); break;
-        // case TD_DOUBLE_HOLD: unregister_code(KC_LALT); break;
-        // case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_X); break;
-        default: break;
-    }
-    play_tap_state.state = TD_NONE;
+void PLAY_reset(tap_dance_state_t *state, void *user_data) {
+	switch (PLAY_tap_state.state) {
+		// case TD_SINGLE_TAP: unregister_code(KC_X); break;
+		// case TD_SINGLE_HOLD: unregister_code(KC_LCTL); break;
+		// case TD_DOUBLE_TAP: unregister_code(KC_ESC); break;
+		// case TD_DOUBLE_HOLD: unregister_code(KC_LALT); break;
+		// case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_X); break;
+		default: break;
+	}
+	PLAY_tap_state.state = TD_NONE;
 }
 
 // === TASKBAR ===
-static td_tap_t taskbar_tap_state = {
-    .is_press_action = true,
-    .state = TD_NONE
-};
 
-void taskbar_finished(tap_dance_state_t *state, void *user_data) {
-    taskbar_tap_state.state = cur_dance(state);
-    switch (taskbar_tap_state.state) {
-        case TD_SINGLE_TAP: send_macro(MAC_TERMINAL); break;
-        case TD_DOUBLE_TAP: send_macro(MAC_EDITOR); break;
-        case TD_TRIPLE_TAP: SEND_STRING(SS_LGUI("3")); break;
-        case TD_QUAD_TAP: SEND_STRING(SS_LGUI("4")); break;
-        default: break;
-    }
+void TASKBAR_finished(tap_dance_state_t *state, void *user_data) {
+	TASKBAR_tap_state.state = cur_dance(state);
+	switch (TASKBAR_tap_state.state) {
+		case TD_SINGLE_TAP: send_macro(MAC_EDITOR); break;
+		case TD_DOUBLE_TAP: send_macro(MAC_TERMINAL); break;
+		case TD_TRIPLE_TAP: SEND_STRING(SS_LGUI("3")); break;
+		case TD_QUAD_TAP: SEND_STRING(SS_LGUI("4")); break;
+		default: break;
+	}
 }
 
-void taskbar_reset(tap_dance_state_t *state, void *user_data) {
-    switch (taskbar_tap_state.state) {
-        // case TD_SINGLE_TAP: unregister_code(KC_X); break;
-        // case TD_SINGLE_HOLD: unregister_code(KC_LCTL); break;
-        // case TD_DOUBLE_TAP: unregister_code(KC_ESC); break;
-        // case TD_DOUBLE_HOLD: unregister_code(KC_LALT); break;
-        // case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_X); break;
-        default: break;//SEND_STRING(SS_TAP(X_ENT));
-    }
-    taskbar_tap_state.state = TD_NONE;
+void TASKBAR_reset(tap_dance_state_t *state, void *user_data) {
+	switch (TASKBAR_tap_state.state) {
+		// case TD_SINGLE_TAP: unregister_code(KC_X); break;
+		// case TD_SINGLE_HOLD: unregister_code(KC_LCTL); break;
+		// case TD_DOUBLE_TAP: unregister_code(KC_ESC); break;
+		// case TD_DOUBLE_HOLD: unregister_code(KC_LALT); break;
+		// case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_X); break;
+		default: break;//SEND_STRING(SS_TAP(X_ENT));
+	}
+	TASKBAR_tap_state.state = TD_NONE;
 }
 
 // === TIMER ===
-static td_tap_t timer_tap_state = {
-    .is_press_action = true,
-    .state = TD_NONE
-};
 
-void timer_each(tap_dance_state_t *state, void *user_data) {
-    timer_tap_state.state = cur_dance(state);
-    switch (timer_tap_state.state) {
-        // case TD_SINGLE_TAP: send_timer(1); break;
-        // case TD_DOUBLE_TAP: send_timer(2); break;
-        // case TD_TRIPLE_TAP: send_timer(3); break;
-        // case TD_QUAD_TAP: send_timer(4); break;
-        default: break;
-    }
+void TIMER_each(tap_dance_state_t *state, void *user_data) {
+	TIMER_tap_state.state = cur_dance(state);
+	switch (TIMER_tap_state.state) {
+		// case TD_SINGLE_TAP: send_timer(1); break;
+		// case TD_DOUBLE_TAP: send_timer(2); break;
+		// case TD_TRIPLE_TAP: send_timer(3); break;
+		// case TD_QUAD_TAP: send_timer(4); break;
+		default: break;
+	}
 }
 
-void timer_finished(tap_dance_state_t *state, void *user_data) {
-    timer_tap_state.state = cur_dance(state);
-    switch (timer_tap_state.state) {
-        case TD_SINGLE_TAP: send_timer(1); break;
-        case TD_DOUBLE_TAP: send_timer(2); break;
-        case TD_TRIPLE_TAP: send_timer(3); break;
-        case TD_QUAD_TAP: send_timer(4); break;
-        default: break;
-    }
+void TIMER_finished(tap_dance_state_t *state, void *user_data) {
+	TIMER_tap_state.state = cur_dance(state);
+	switch (TIMER_tap_state.state) {
+		case TD_SINGLE_TAP: send_timer(1); break;
+		case TD_DOUBLE_TAP: send_timer(2); break;
+		case TD_TRIPLE_TAP: send_timer(3); break;
+		case TD_QUAD_TAP: send_timer(4); break;
+		default: break;
+	}
 }
 
-void timer_reset(tap_dance_state_t *state, void *user_data) {
-    switch (taskbar_tap_state.state) {
-        // case TD_SINGLE_TAP: unregister_code(KC_X); break;
-        // case TD_SINGLE_HOLD: unregister_code(KC_LCTL); break;
-        // case TD_DOUBLE_TAP: unregister_code(KC_ESC); break;
-        // case TD_DOUBLE_HOLD: unregister_code(KC_LALT); break;
-        // case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_X); break;
-        default: break;//SEND_STRING(SS_TAP(X_ENT));
-    }
-    timer_tap_state.state = TD_NONE;
+void TIMER_reset(tap_dance_state_t *state, void *user_data) {
+	switch (TIMER_tap_state.state) {
+		// case TD_SINGLE_TAP: unregister_code(KC_X); break;
+		// case TD_SINGLE_HOLD: unregister_code(KC_LCTL); break;
+		// case TD_DOUBLE_TAP: unregister_code(KC_ESC); break;
+		// case TD_DOUBLE_HOLD: unregister_code(KC_LALT); break;
+		// case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_X); break;
+		default: break;//SEND_STRING(SS_TAP(X_ENT));
+	}
+	TIMER_tap_state.state = TD_NONE;
 }
 
 // === MACRO-TAPS ===
-static td_tap_t macro_tap_state = {
-    .is_press_action = true,
-    .state = TD_NONE
-};
 
-void macro_finished(tap_dance_state_t *state, void *user_data) {
-    macro_tap_state.state = cur_dance(state);
-    switch (macro_tap_state.state) {
-        case TD_SINGLE_TAP: send_macro(MAC_SEARCH); break;
-        case TD_DOUBLE_TAP: send_macro(MAC_SCREENSHOT); break;
-        // case TD_TRIPLE_TAP: send_macro(MAC_SEARCH); break;
-        // case TD_QUAD_TAP: send_macro(MAC_SEARCH); break;
-        default: break;
-    }
+void MACRO_finished(tap_dance_state_t *state, void *user_data) {
+	MACRO_tap_state.state = cur_dance(state);
+	switch (MACRO_tap_state.state) {
+		case TD_SINGLE_TAP: send_macro(MAC_SEARCH); break;
+		case TD_DOUBLE_TAP: send_macro(MAC_SCREENSHOT); break;
+		// case TD_TRIPLE_TAP: send_macro(MAC_SEARCH); break;
+		// case TD_QUAD_TAP: send_macro(MAC_SEARCH); break;
+		default: break;
+	}
 }
 
-void macro_reset(tap_dance_state_t *state, void *user_data) {
-    switch (macro_tap_state.state) {
-        default: break;
-    }
-    macro_tap_state.state = TD_NONE;
+void MACRO_reset(tap_dance_state_t *state, void *user_data) {
+	switch (MACRO_tap_state.state) {
+		default: break;
+	}
+	MACRO_tap_state.state = TD_NONE;
+}
+
+// === CTRL-TAPS ===
+
+void CTRL_finished(tap_dance_state_t *state, void *user_data) {
+	CTRL_tap_state.state = cur_dance(state);
+	switch (CTRL_tap_state.state) {
+		case TD_SINGLE_TAP: //SEND_STRING("1");
+			set_oneshot_layer(1, ONESHOT_START); break;
+		case TD_TAP_INTERRUPT: //SEND_STRING("1i");
+		case TD_SINGLE_HOLD : //SEND_STRING("1h"); 
+			register_code(KC_LCTL); break;
+		case TD_DOUBLE_TAP: //SEND_STRING("2"); 
+			set_oneshot_layer(1, ONESHOT_START); set_oneshot_layer(1, ONESHOT_PRESSED); break;
+		case TD_DOUBLE_HOLD: //SEND_STRING("2h"); 
+			register_code(KC_LCTL); layer_on(1); break;
+		// case TD_TRIPLE_TAP: send_macro(MAC_SEARCH); break;
+		// case TD_QUAD_TAP: send_macro(MAC_SEARCH); break;
+		default: break;
+	}
+}
+
+void CTRL_reset(tap_dance_state_t *state, void *user_data) {
+	switch (CTRL_tap_state.state) {
+		case TD_SINGLE_TAP: //SEND_STRING("1 d");
+			clear_oneshot_layer_state(ONESHOT_PRESSED); break;
+		case TD_TAP_INTERRUPT: //SEND_STRING("1i d");
+		case TD_SINGLE_HOLD : //SEND_STRING("1h d"); 
+			unregister_code(KC_LCTL); break;
+		case TD_DOUBLE_TAP: //SEND_STRING("2 d"); 
+			clear_oneshot_layer_state(ONESHOT_PRESSED); break;
+		case TD_DOUBLE_HOLD: //SEND_STRING("2h d");
+			layer_off(1); unregister_code(KC_LCTL); break;
+	}
+	CTRL_tap_state.state = TD_NONE;
+}
+
+// === ALT-TAPS ===
+
+void ALT_finished(tap_dance_state_t *state, void *user_data) {
+	ALT_tap_state.state = cur_dance(state);
+	switch (ALT_tap_state.state) {
+		case TD_SINGLE_TAP: set_oneshot_layer(1, ONESHOT_START);  break;
+		case TD_TAP_INTERRUPT:
+		case TD_SINGLE_HOLD : register_code(KC_LALT); break;
+		case TD_DOUBLE_TAP: set_oneshot_layer(1, ONESHOT_START); set_oneshot_layer(FUNCS, ONESHOT_PRESSED); break;
+		case TD_DOUBLE_HOLD: register_code(KC_LALT); layer_on(1); break;
+		// case TD_TRIPLE_TAP: send_macro(MAC_SEARCH); break;
+		// case TD_QUAD_TAP: send_macro(MAC_SEARCH); break;
+		default: break;
+	}
+}
+
+void ALT_reset(tap_dance_state_t *state, void *user_data) {
+	switch (ALT_tap_state.state) {
+		case TD_SINGLE_TAP: clear_oneshot_layer_state(ONESHOT_PRESSED); break;
+		case TD_TAP_INTERRUPT:
+		case TD_SINGLE_HOLD : unregister_code(KC_LALT); break;
+		case TD_DOUBLE_TAP: clear_oneshot_layer_state(ONESHOT_PRESSED); break;
+		case TD_DOUBLE_HOLD: layer_off(1); unregister_code(KC_LALT); break;
+	}
+	ALT_tap_state.state = TD_NONE;
 }
 
 tap_dance_action_t tap_dance_actions[] = {
-    [PLAY] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, play_finished, taskbar_reset),
-    [TASKBAR] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, taskbar_finished, taskbar_reset),
-    [TIMER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, timer_finished, timer_reset),
-    [MACRO] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, macro_finished, macro_reset)
+	[PLAY] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, PLAY_finished, PLAY_reset),
+	[TASKBAR] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, TASKBAR_finished, TASKBAR_reset),
+	[TIMER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, TIMER_finished, TIMER_reset),
+	[MACRO] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, MACRO_finished, MACRO_reset),
+	[CTRL] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, CTRL_finished, CTRL_reset),
+	[ALT] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, ALT_finished, ALT_reset)
 };
+

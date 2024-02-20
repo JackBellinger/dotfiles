@@ -3,32 +3,38 @@
 #
 LAYOUT = all
 
-BOOTMAGIC_ENABLE 	= yes	# Bootmagic Lite
+BOOTMAGIC_ENABLE 		= yes	# Bootmagic Lite
 DEFERRED_EXEC_ENABLE = yes	# Execute callback at after x time
 CONSOLE_ENABLE 		= no	# Console for debug
 COMMAND_ENABLE 		= no	# Commands for debug and configuration
-NKRO_ENABLE 		= yes	# N-Key Rollover
-SWAP_HANDS_ENABLE	= no	# Swapping split keeb sides
+NKRO_ENABLE 			= yes	# N-Key Rollover
+SWAP_HANDS_ENABLE		= no	# Swapping split keeb sides
 
 # Keys
-EXTRAKEY_ENABLE 	= yes	# Audio control and System control
-MOUSEKEY_ENABLE 	= no	# Mouse keys
-UNICODE_COMMON		= no
-UNICODE_ENABLE		= no	# Unicode
-UCIS_ENABLE			= no	# Unicode mnemonics
-LEADER_ENABLE		= no	# Leader key
-CAPS_WORD_ENABLE	= yes	# Caps lock until end of word
+EXTRAKEY_ENABLE 		= yes	# Audio control and System control
+MOUSEKEY_ENABLE 		= yes	# Mouse keys
+UNICODE_COMMON			= no
+UNICODE_ENABLE			= no	# Unicode
+UCIS_ENABLE				= no	# Unicode mnemonics
+LEADER_ENABLE			= no	# Leader key
+CAPS_WORD_ENABLE		= yes	# Caps lock until end of word
 
 # IO features
-BACKLIGHT_ENABLE	= no	# Backlight
+BACKLIGHT_ENABLE		= no	# Backlight
 RGBLIGHT_ENABLE		= yes	# RGB underglow
-AUDIO_ENABLE		= no	# In-keyboard audio
+AUDIO_ENABLE			= no	# In-keyboard audio
+MUSIC_ENABLE			= no
 
 # Features Toggles
-# MACRO_ENABLE		= yes	# Macros
-TAP_DANCE_ENABLE	= yes	# Tap Dance
-TIMERS_ENABLE		= yes	# Timers
-# LAYER_LOCK_ENABLE	= yes	# Layer Lock
+TAP_DANCE_ENABLE		= yes	# Tap Dance
+SPACE_CADET_ENABLE	= no
+GRAVE_ESC_ENABLE		= no 
+MAGIC_ENABLE			= no
+
+#Custom Features
+TIMERS_ENABLE			= yes	# Timers
+#MACRO_ENABLE			= yes	# Macros are always enabled
+# LAYER_LOCK_ENABLE	= yes	# Layer Lock is always enabled
 
 
 #Add features directory to compilation
@@ -36,7 +42,16 @@ SRC += features/macro.c
 SRC += features/layer_lock.c
 SRC += features/tap_dance.c
 SRC += features/timer.c
+SRC += features/turbo_click.c
 # SRC += features/rgb.c
 # SRC += features/combos.c
+
+#AVR Size optimizations
+ifneq ($(strip $(LTO_SUPPORTED)), no)
+	LTO_ENABLE        = yes
+endif
+CONSOLE_ENABLE 		= no
+COMMAND_ENABLE 		= no
+AVR_USE_MINIMAL_PRINTF = yes
 
 EXTRAFLAGS        += -flto

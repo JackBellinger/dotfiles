@@ -7,21 +7,25 @@
 // #include "keyrecords/process_records.h"
 // #include "callbacks.h"
 
-enum {
-    alphas = 0,
-    nav_funcs = 1,
-    etc = 2
+typedef enum {
+	ALPHAS,
+	FUNCS,
+	NAV,
+	MATH,
+	GAME,
+	MIDI
 } layers;
 
 #include "features/macro.h"
 #include "features/layer_lock.h"
+#include "features/timer.h"
 
 #ifdef TAP_DANCE_ENABLE
 #    include "features/tap_dance.h"
 #endif
-//#ifdef TIMERS_ENABLE
-#include "features/timer.h"
-//#endif
+#ifdef MOUSEKEY_ENABLE
+#    include "features/turbo_click.h"
+#endif
 // #if defined(RGBLIGHT_ENABLE)
 // #    include "rgb/rgb_stuff.h"
 // #endif
