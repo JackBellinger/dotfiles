@@ -1,6 +1,5 @@
 #pragma once
 #include "quantum.h"
-#include "macro.h"
 
 /* Define the timers 
 (timer name, function to call on alert, color to make the alert flash, and the duration of th e timer) */

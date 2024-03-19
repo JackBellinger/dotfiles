@@ -1,31 +1,28 @@
 #pragma once
 #include QMK_KEYBOARD_H
-
+#define RGBLIGHT_LED_COUNT 19
 
 // #include "eeconfig_users.h"
 // #include "keyrecords/wrappers.h"
 // #include "keyrecords/process_records.h"
 // #include "callbacks.h"
 
-typedef enum {
-	ALPHAS,
-	FUNCS,
-	NAV,
-	MATH,
-	GAME,
-	MIDI
-} layers;
-
+#include "custom_keycodes.h"
+#pragma once
 #include "features/macro.h"
 #include "features/layer_lock.h"
 #include "features/timer.h"
 
+#ifdef DEFERRED_EXEC_ENABLE
+	#include "features/temporal_dynamic_macro.h"
+#endif
+
 #ifdef TAP_DANCE_ENABLE
+#pragma once
 #    include "features/tap_dance.h"
 #endif
-#ifdef MOUSEKEY_ENABLE
-#    include "features/turbo_click.h"
-#endif
+
+
 // #if defined(RGBLIGHT_ENABLE)
 // #    include "rgb/rgb_stuff.h"
 // #endif

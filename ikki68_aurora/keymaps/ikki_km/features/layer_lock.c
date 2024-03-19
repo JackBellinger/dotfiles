@@ -49,8 +49,7 @@ static bool handle_mo_or_tt(uint8_t layer, keyrecord_t* record) {
   return true;
 }
 
-bool process_layer_lock(uint16_t keycode, keyrecord_t* record,
-                        uint16_t lock_keycode) {
+bool process_layer_lock(uint16_t keycode, keyrecord_t* record, uint16_t lock_keycode) {
 #if LAYER_LOCK_IDLE_TIMEOUT > 0
   layer_lock_timer = timer_read32();
 #endif  // LAYER_LOCK_IDLE_TIMEOUT > 0

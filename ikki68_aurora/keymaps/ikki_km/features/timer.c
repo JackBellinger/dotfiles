@@ -7,6 +7,7 @@
 #define RGB_MODE_DEFAULT RGBLIGHT_MODE_RAINBOW_SWIRL
 #define RGB_MODE_ALERT RGBLIGHT_MODE_ALTERNATING
 #define RGB_MODE_TESTING RGBLIGHT_MODE_STATIC_LIGHT
+#define RGBLIGHT_LED_COUNT 19
 
 //check timers.h for struct explanation
 struct timers_struct timers = {
@@ -77,7 +78,7 @@ void logo(int timer){ // Set one of the 4 logo leds for each quarter of the dura
 		//can only some leds be static for timer and the rest be animated?
 		rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
 		//turn off all the leds
-		for( int i = 0; i <= 19; i++){
+		for( int i = 0; i <= RGBLIGHT_LED_COUNT; i++){
 			rgblight_sethsv_at(HSV_OFF, i);
 		}
 		timers.status[timer] = Running;

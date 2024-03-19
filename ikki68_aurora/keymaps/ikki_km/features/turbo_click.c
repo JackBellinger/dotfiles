@@ -21,6 +21,7 @@
  */
 
 #include "features/turbo_click.h"
+#include "../custom_keycodes.h"
 
 // This library relies on that mouse keys and the deferred execution API are
 // enabled, which we check for here. Enable them in your rules.mk by setting:
@@ -85,8 +86,7 @@ static void turbo_click_stop(void) {
   }
 }
 
-bool process_mouse_turbo_click(uint16_t keycode, keyrecord_t* record,
-                               uint16_t turbo_click_keycode) {
+bool process_mouse_turbo_click(uint16_t keycode, keyrecord_t* record, uint16_t turbo_click_keycode) {
   static bool locked = false;
   static bool tapped = false;
   static uint16_t tap_timer = 0;

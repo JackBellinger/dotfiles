@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef LOCKING_SUPPORT_ENABLE
 #undef LOCKING_RESYNC_ENABLE
 
+#define DYNAMIC_MACRO_NO_NESTING
+
 #define TAPPING_TERM_PER_KEY
 //#define PERMISSIVE_HOLD
 

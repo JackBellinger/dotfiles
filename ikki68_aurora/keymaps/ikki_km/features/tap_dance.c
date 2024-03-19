@@ -1,4 +1,8 @@
-#include "jack.h"
+#include "tap_dance.h"
+// #include "../custom_keycodes.h" //set_oneshot_layer(FUNCS...
+#include "macro.h" //send_macro
+#include "timer.h" //send_timer
+#include "temporal_dynamic_macro.h" //tdm_state_transition
 
 td_state_t cur_dance(tap_dance_state_t *state) {
 	if (state->count == 1) {
@@ -73,8 +77,8 @@ void PLAY_reset(tap_dance_state_t *state, void *user_data) {
 void TASKBAR_finished(tap_dance_state_t *state, void *user_data) {
 	TASKBAR_tap_state.state = cur_dance(state);
 	switch (TASKBAR_tap_state.state) {
-		case TD_SINGLE_TAP: send_macro(MAC_EDITOR); break;
-		case TD_DOUBLE_TAP: send_macro(MAC_TERMINAL); break;
+		case TD_SINGLE_TAP: send_macro(MAC_EDITOR, NULL); break;
+		case TD_DOUBLE_TAP: send_macro(MAC_TERMINAL, NULL); break;
 		case TD_TRIPLE_TAP: SEND_STRING(SS_LGUI("3")); break;
 		case TD_QUAD_TAP: SEND_STRING(SS_LGUI("4")); break;
 		default: break;
@@ -129,15 +133,42 @@ void TIMER_reset(tap_dance_state_t *state, void *user_data) {
 	TIMER_tap_state.state = TD_NONE;
 }
 
+// === Temporal Dynamic Macros ===
+// 	TDM_RECORD, needs it's own key (has built in tap handling)
+// 	TDM_DELAY, yes
+// 	TDM_END, yes
+// 	TDM_PLAY, built in tapping
+// 	TDM_LOOP, built in tapping
+void TDM_D_finished(tap_dance_state_t *state, void *user_data) {
+	TDM_D_tap_state.state = cur_dance(state);
+	switch (TDM_D_tap_state.state) {
+		case TD_SINGLE_TAP: process_temporal_dynamic_macro(TDM_DELAY, NULL); break;
+		case TD_DOUBLE_TAP: process_temporal_dynamic_macro(TDM_END, NULL); break;
+		default: break;
+	}
+}
+
+void TDM_D_reset(tap_dance_state_t *state, void *user_data) {
+	switch (TDM_D_tap_state.state) {
+		// case TD_SINGLE_TAP: unregister_code(KC_X); break;
+		// case TD_SINGLE_HOLD: unregister_code(KC_LCTL); break;
+		// case TD_DOUBLE_TAP: unregister_code(KC_ESC); break;
+		// case TD_DOUBLE_HOLD: unregister_code(KC_LALT); break;
+		// case TD_DOUBLE_SINGLE_TAP: unregister_code(KC_X); break;
+		default: break;
+	}
+	TDM_D_tap_state.state = TD_NONE;
+}
+
 // === MACRO-TAPS ===
 
 void MACRO_finished(tap_dance_state_t *state, void *user_data) {
 	MACRO_tap_state.state = cur_dance(state);
 	switch (MACRO_tap_state.state) {
-		case TD_SINGLE_TAP: send_macro(MAC_SEARCH); break;
-		case TD_DOUBLE_TAP: send_macro(MAC_SCREENSHOT); break;
-		// case TD_TRIPLE_TAP: send_macro(MAC_SEARCH); break;
-		// case TD_QUAD_TAP: send_macro(MAC_SEARCH); break;
+		case TD_SINGLE_TAP: send_macro(MAC_SEARCH, NULL); break;
+		case TD_DOUBLE_TAP: send_macro(MAC_SCREENSHOT, NULL); break;
+		// case TD_TRIPLE_TAP: send_macro(MAC_SEARCH, NULL); break;
+		// case TD_QUAD_TAP: send_macro(MAC_SEARCH, NULL); break;
 		default: break;
 	}
 }
@@ -163,8 +194,8 @@ void CTRL_finished(tap_dance_state_t *state, void *user_data) {
 			set_oneshot_layer(1, ONESHOT_START); set_oneshot_layer(1, ONESHOT_PRESSED); break;
 		case TD_DOUBLE_HOLD: //SEND_STRING("2h"); 
 			register_code(KC_LCTL); layer_on(1); break;
-		// case TD_TRIPLE_TAP: send_macro(MAC_SEARCH); break;
-		// case TD_QUAD_TAP: send_macro(MAC_SEARCH); break;
+		// case TD_TRIPLE_TAP: send_macro(MAC_SEARCH, NULL); break;
+		// case TD_QUAD_TAP: send_macro(MAC_SEARCH, NULL); break;
 		default: break;
 	}
 }
@@ -194,8 +225,8 @@ void ALT_finished(tap_dance_state_t *state, void *user_data) {
 		case TD_SINGLE_HOLD : register_code(KC_LALT); break;
 		case TD_DOUBLE_TAP: set_oneshot_layer(1, ONESHOT_START); set_oneshot_layer(FUNCS, ONESHOT_PRESSED); break;
 		case TD_DOUBLE_HOLD: register_code(KC_LALT); layer_on(1); break;
-		// case TD_TRIPLE_TAP: send_macro(MAC_SEARCH); break;
-		// case TD_QUAD_TAP: send_macro(MAC_SEARCH); break;
+		// case TD_TRIPLE_TAP: send_macro(MAC_SEARCH, NULL); break;
+		// case TD_QUAD_TAP: send_macro(MAC_SEARCH, NULL); break;
 		default: break;
 	}
 }
@@ -215,6 +246,7 @@ tap_dance_action_t tap_dance_actions[] = {
 	[PLAY] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, PLAY_finished, PLAY_reset),
 	[TASKBAR] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, TASKBAR_finished, TASKBAR_reset),
 	[TIMER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, TIMER_finished, TIMER_reset),
+	[TDM_D] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, TDM_D_finished, TDM_D_reset),
 	[MACRO] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, MACRO_finished, MACRO_reset),
 	[CTRL] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, CTRL_finished, CTRL_reset),
 	[ALT] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, ALT_finished, ALT_reset)
