@@ -250,13 +250,14 @@ function ffmpeg_c() {
         "webp")
              encoding_lib="libwebp";;
         "avif")
-            encoding_lib="libaom-av1 -still-picture 1";;
+             encoding_lib="av1";;
         *)
-              echo "unsupported encoding";;
+              echo "Unsupported encoding"; return;;
     esac
     echo "$encoding_lib: ${1%.*}.$2"
-    ffmpeg -i $1  -c:v $encoding_lib ${1%.*}.$2
+    ffmpeg -i "$1" -c:v "$encoding_lib" -strict experimental "${1%.*}.$2"
 }
+
 
 function uz() {
     if [ ! -f "$1" ] ; then
