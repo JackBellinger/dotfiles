@@ -18,6 +18,12 @@
  *
  * For full documentation, see
  * <https://jackbellinger.github.io/blog/articles/qmk-temporal-dynamic-macro>
+ 
+ users cannot hold a layer key during a delay
+Tapdances currently can't be used in a tdm, since I'm using register_code, it doesn't store taps or combos (when the tapdance is) so register code must not trigger taps
+Layer keys are filtered out, only the resulting keycode will be stored.
+ 
+ you can't add a delay at the end of a macro without another key following it. If you'd like to end with a delay for a loop and not have any following key before the start of the macro, you'll need to enter a KC_NO
  */
 
 #include "features/temporal_dynamic_macro.h"
@@ -32,6 +38,7 @@
  * functions which can be overridden by the user to customize functionality.
  * tdm_is_valid_key_user allows the user to narrow what keys are allowed to be in a macro. 
  *     Normally the only restriction is that only numeric keys can be entered while recording a delay
+ * 
  */
 // default feedback method
 void tdm_led_blink(void) {
@@ -45,8 +52,9 @@ void tdm_led_blink(void) {
 #endif
 }
 
-void tdm_amhere(void) {
+void tdm_led_double_blink(void) {
 	tdm_led_blink();
+	wait_ms(100);
 	tdm_led_blink();
 }
 void print_macros(void);
@@ -72,12 +80,14 @@ __attribute__((weak)) void tdm_init_user(void) {
 }
 __attribute__((weak)) void tdm_record_start_user(uint8_t MACRO_id) {
 	tdm_led_blink();
-	print_macros();
+	// print_macros();
 }
 __attribute__((weak)) bool tdm_is_valid_key_user(uint16_t keycode) {
 	return true;
 }
-__attribute__((weak)) void tdm_record_key_user(uint8_t MACRO_id, keyrecord_t *record) {
+__attribute__((weak)) void tdm_record_key_user(uint8_t MACRO_id, uint16_t keycode) {
+	// uprintf("recording key: %d\n", keycode);
+	print_macros();
 	tdm_led_blink();
 }
 __attribute__((weak)) void tdm_record_end_user(uint8_t MACRO_id) {
@@ -99,7 +109,38 @@ __attribute__((weak)) void tdm_play_stop_user(uint8_t M_id) {
  * MACRO_ends: pointers to the end of the macro
  * current_pointer: macro iteration pointer
  */
- 
+typedef struct {
+	uint16_t keycode;
+	uint32_t delay_ms;
+	uint8_t flags; //butmask set by tdm_key_flags
+	// TODO figure out what other fields I would need to support various qmk features
+	//			(combo keys used in tdm, tap dances, etc)
+} tdm_keypress_t;
+
+/*
+ * bitmask for key metadata flags
+ * FLAG_pressed: if the key was pressed down or released
+ * 1-8: unused, reserved for future extensions to support 
+*/
+#define FLAG_pressed (1u)
+#define FLAG_1 (1u << 1)
+#define FLAG_3 (1u << 2)
+#define FLAG_4 (1u << 3)
+#define FLAG_5 (1u << 4)
+#define FLAG_6 (1u << 5)
+#define FLAG_7 (1u << 6)
+#define FLAG_8 (1u << 7)
+// Function to set or clear one flag inside the bitmask based on the boolean value
+static inline void set_flag(tdm_keypress_t *keypress, uint8_t flag, bool is_set) {
+	keypress->flags ^= (flag & -is_set) ^ ((keypress->flags) & flag);
+}
+static inline bool is_set(tdm_keypress_t *keypress, uint8_t flag){
+	return (bool)(keypress->flags & flag);
+}
+static inline void clear_flags(tdm_keypress_t *keypress) {
+	keypress->flags = 0;
+}
+
 /* Macro Buffers: 2D array that stores the keyrecords for each step of a macro
  * Each macro shares a buffer but read/write on different
  * ends of it.
@@ -125,14 +166,14 @@ __attribute__((weak)) void tdm_play_stop_user(uint8_t M_id) {
  * macros or one long macro and one short macro. Or even one empty
  * and one using the whole buffer.
  */
-static keyrecord_t MACRO_buffers[(TDM_NUM_MACROS + 1) / 2][TDM_BUFFER_SIZE];
+static tdm_keypress_t MACRO_buffers[(TDM_NUM_MACROS + 1) / 2][TDM_BUFFER_SIZE];
 
 /* Pointers to the end of each buffer
  * initially each buffer is empty, so each end pointer starts at the beginning.
  * points to the index after the last keycode in the macro
  * (if end points to n, last filled spot is n-1)
  */
-static keyrecord_t* MACRO_ends[(TDM_NUM_MACROS + (TDM_NUM_MACROS % 2))];
+static tdm_keypress_t* MACRO_ends[(TDM_NUM_MACROS + (TDM_NUM_MACROS % 2))];
 
 /* Bookkeeping state
  * tracks what process the user currently in
@@ -144,11 +185,11 @@ static keyrecord_t* MACRO_ends[(TDM_NUM_MACROS + (TDM_NUM_MACROS % 2))];
 static uint8_t MACRO_id = 0;
 
 // pointer to the start of the current macro buffer
-static keyrecord_t* MACRO_start;
+static tdm_keypress_t* MACRO_start;
 //pointer to the current macro position (iterator)
-static keyrecord_t* MACRO_iterator = NULL;
+static tdm_keypress_t* MACRO_iterator = NULL;
 //pointer to the current macro neighbor end (last empty buffer space)
-static keyrecord_t* MACRO_end;
+static tdm_keypress_t* MACRO_end;
 
 /* The MACRO_direction of the current macro, even(0,2..) macros go ->LtR->, odd macros go <-RtL<- 
 * either 1 or -1
@@ -284,15 +325,17 @@ void reset_state(void) {
 	MACRO_end = MACRO_ends[0];
 }
 
+static bool play_finished;
 void tdm_reset_iterator(void) {
 	MACRO_direction = DIRECTION(MACRO_id);
-	MACRO_start = TDM_CURRENT_START(MACRO_id );
+	MACRO_start = TDM_CURRENT_START(MACRO_id);
 	MACRO_iterator = MACRO_start;
 	MACRO_end = MACRO_ends[MACRO_id];
+	play_finished = false;
 }
 
 void tdm_record_start(void);
-void tdm_record_key(keyrecord_t* record);
+void tdm_record_key(uint16_t keycode, keyrecord_t* record);
 void tdm_record_delay_start(void);
 void tdm_record_delay(uint16_t keycode);
 void tdm_record_delay_end(void);
@@ -320,45 +363,59 @@ void tdm_record_start(void) {
  * @param macro2_end[in] The end of the other macro.
  * @param record[in]	 The current keypress.
  */
-void tdm_record_key(keyrecord_t* record) {
+void tdm_record_key(uint16_t keycode, keyrecord_t* record) {
 	/* If we've just started recording, ignore all the key releases. */
-	if (!record->event.pressed && TDM_ITERATOR_AT_START()) {
-		//dprintln("temporal dynamic macro: ignoring a leading key-up event");
+	
+	static bool got_first_keydown = false;
+	if (!record->event.pressed && !got_first_keydown) {
+		uprintf("temporal dynamic macro: ignoring a leading key-up event\n");
 		return;
+	} else {
+		got_first_keydown = true;
 	}
-	static int last_key_time = 0;
-	if (TDM_ITERATOR_AT_START()){ //init last_key_time for the first record
-		last_key_time = record->event.time;
-	}
-	record->event.time = last_key_time + MACRO_delay_next_key_ms;
-	MACRO_delay_next_key_ms = 0; // only apply the delay to the following recorded key
-	last_key_time = record->event.time;
 
+	//TODO
 	//if the pointer is past the neighbor's end, it's overlapping so end the macro and return
 	if (MACRO_iterator - MACRO_direction == MACRO_ends[NEIGHBOR(MACRO_id)]) {
 		tdm_record_end();
 		return;
 	}
-	*MACRO_iterator = *record;
+	
+	MACRO_iterator->keycode = keycode;
+	
+	set_flag(MACRO_iterator, FLAG_pressed, record->event.pressed);
+	
 	MACRO_iterator += MACRO_direction;
-	tdm_record_key_user(MACRO_id, record);
-
-	uprintf("temporal dynamic macro: slot %d length: %d/%d\n", MACRO_id, TDM_CURRENT_LENGTH(MACRO_iterator), TDM_CURRENT_CAPACITY(MACRO_id));
+	//clear any old data
+	MACRO_iterator->delay_ms = 0;
+	clear_flags(MACRO_iterator);
+	
+	tdm_record_key_user(MACRO_id, keycode);
+	// uprintf("temporal dynamic macro: slot %d length: %d/%d\n", MACRO_id, TDM_CURRENT_LENGTH(MACRO_iterator), TDM_CURRENT_CAPACITY(MACRO_id));
 }
 
-void tdm_overwrite_alert(uint16_t keycode, keyrecord_t *record) {
+void tdm_overwrite_alert(uint16_t keycode) {
 	//dprintln("temporal dynamic macro: stopping to avoid overwriting");
 	//TODO: flash leds or something
 }
 
-void tdm_record_delay_start(void){ 
+static inline bool tdm_is_layer_key(uint16_t keycode);
+static inline bool tdm_is_control_key(uint16_t keycode);
+
+void tdm_record_delay_start(void){
 	MACRO_delay_next_key_ms = 0;
+	while (MACRO_iterator != MACRO_start && 
+			(tdm_is_layer_key((MACRO_iterator - MACRO_direction)->keycode))) {
+		uprintf("temporal dynamic macro: trimming : iter %d, kc %d, flags %d\n", MACRO_iterator, MACRO_iterator->keycode, MACRO_iterator->flags);
+		MACRO_iterator -= MACRO_direction;
+	}
 }
 
 /**
  * Record a single key in a dynamic macro.
  */
 void tdm_record_delay(uint16_t keycode) {
+	uprintf("recording delay: %d\n", keycode);
 	if (MACRO_delay_next_key_ms > 7200000) { //max delay is 2 hours (ms)
 		return;
 	}
@@ -370,110 +427,150 @@ void tdm_record_delay(uint16_t keycode) {
 	MACRO_delay_next_key_ms *= 10;
 	MACRO_delay_next_key_ms += key_val;
 }
+
 void tdm_record_delay_end(void) {
-	//noop, satisfies the state machine 
-	// 	{beep boop lgmt👍}
-	//🤖^
+	print_macros();
+	//add delay to last pressed key
+	tdm_keypress_t* lookback_iterator = MACRO_iterator;
+	// while (lookback_iterator != MACRO_start && !is_set(lookback_iterator, FLAG_pressed)) {
+	// 	uprintf("temporal dynamic macro: trimming : iter %d, kc %d, flags %d\n", lookback_iterator, lookback_iterator->keycode, lookback_iterator->flags);
+	// 	lookback_iterator -= MACRO_direction;
+	// }
+	uprintf("temporal dynamic macro: ending record delay : iter %d, kc %d, flags %d\n", lookback_iterator, lookback_iterator->keycode, lookback_iterator->flags);
+	lookback_iterator->delay_ms = MACRO_delay_next_key_ms;
+	MACRO_delay_next_key_ms = 0;
 }
 /**
  * End recording of the dynamic macro. Essentially just update the
  * pointer to the end of the macro.
  */
 void tdm_record_end(void) {
-	tdm_record_end_user(MACRO_id);
-
 	/* Do not save the keys being held when stopping the recording,
 	* i.e. the keys used to access the layer DM_RSTP is on.
 	*/
-	while (MACRO_iterator != MACRO_start && (MACRO_iterator - MACRO_direction)->event.pressed) {
-		//dprintln("temporal dynamic macro: trimming a trailing key-down event");
+	uprintf("temporal dynamic macro: ending record : iter %d, kc %d, flags %d\n", MACRO_iterator, MACRO_iterator->keycode, MACRO_iterator->flags);
+	print_macros();
+	while (MACRO_iterator != MACRO_start && 
+			(!is_set((MACRO_iterator - MACRO_direction), FLAG_pressed) || 
+			 tdm_is_control_key((MACRO_iterator - MACRO_direction)->keycode) || 
+			 tdm_is_layer_key((MACRO_iterator - MACRO_direction)->keycode))) 
+	{
+		uprintf("temporal dynamic macro: trimming : iter %d, kc %d, flags %d\n", (MACRO_iterator - MACRO_direction), (MACRO_iterator - MACRO_direction)->keycode, (MACRO_iterator - MACRO_direction)->flags);
 		MACRO_iterator -= MACRO_direction;
 	}
-
 	uprintf("temporal dynamic macro: slot %d saved, length: %d\n", MACRO_id, TDM_CURRENT_LENGTH(MACRO_iterator));
 	MACRO_ends[MACRO_id] = MACRO_iterator;
+	tdm_record_end_user(MACRO_id);
 }
-
 bool tdm_state_transition(State next_state);
 void tdm_play_start(void);
-static uint32_t tdm_play_callback(uint32_t trigger_time, void* cb_arg);
 void tdm_play(void);
+
+typedef uint32_t (*DeferCallback)(uint32_t trigger_time, void* cb_arg);
+static uint32_t tdm_delay_callback(uint32_t trigger_time, void* cb_arg);
+static uint32_t tdm_loop_callback(uint32_t trigger_time, void* cb_arg);
+
 // we could save this defer_exec slot when not using tap selecto MACRO_id
 // if there's a way to interrupt a blocking loop, or if we disable looping
-static deferred_token loop_token = INVALID_DEFERRED_TOKEN;
-static deferred_token play_delay_token = INVALID_DEFERRED_TOKEN;
+static deferred_token play_token = INVALID_DEFERRED_TOKEN;
+static deferred_token delay_token = INVALID_DEFERRED_TOKEN;
+static inline void tdm_clear_tokens(void) {
+	if (play_token != INVALID_DEFERRED_TOKEN) {
+		cancel_deferred_exec(play_token);
+		play_token = INVALID_DEFERRED_TOKEN;
+	}
+	if (delay_token != INVALID_DEFERRED_TOKEN) {
+		cancel_deferred_exec(delay_token);
+		delay_token = INVALID_DEFERRED_TOKEN;
+	}
+}
+
 void tdm_play_start(void) {
+	clear_keyboard();
+	layer_clear();
+	uprintf("SAFE_RANGE: %d\n", TURBO);
 	tdm_play_user(MACRO_id);
 	tdm_reset_iterator();
 	uprintf("play start: %d -> %d (Macro_iterator) %d\n", MACRO_start, MACRO_end, MACRO_iterator);
-	// static layer_state_t saved_layer_state = layer_state;
-	// Cancel the previous debounce function if it's still scheduled
-	if (MACRO_current_state == STATE_looping) {
-		if (loop_token != INVALID_DEFERRED_TOKEN) {
-			cancel_deferred_exec(loop_token);
-			cancel_deferred_exec(play_delay_token); //in case the previous looping was in a delay
-		}
-		loop_token = defer_exec(TDM_DEBOUNCE_DELAY, tdm_play_callback, NULL);
-	}
-	else { //save a defer exec slot if not looping
-		tdm_play();
-		if (play_delay_token == INVALID_DEFERRED_TOKEN)
-			tdm_state_transition(STATE_idle);
+	tdm_play();
+	if (play_finished){ //only go to idle if it's not waiting on a delay
+		uprintf("not in a delay\n");
+		tdm_clear_tokens();
+		tdm_state_transition(STATE_idle);
 	}
 }
 
-static uint32_t tdm_play_callback(uint32_t trigger_time, void* cb_arg) {
+void tdm_loop_start(void) {
+	tdm_play_user(MACRO_id);
+	if (play_token != INVALID_DEFERRED_TOKEN) { //restart if already looping or delayed
+		tdm_clear_tokens();
+	}
+	tdm_reset_iterator();
+	uprintf("loop start: %d -> %d (Macro_iterator) %d\n", MACRO_start, MACRO_end, MACRO_iterator);
+	play_token = defer_exec(TDM_DEBOUNCE_DELAY, tdm_loop_callback, NULL);
+}
+
+static uint32_t tdm_delay_callback(uint32_t trigger_time, void* cb_arg) {
 	uprintf("play debounce\n");
 	tdm_play();
-	if (play_delay_token == INVALID_DEFERRED_TOKEN && MACRO_current_state != STATE_looping) {
+	if (play_finished) { //only go to idle if it's not waiting on a delay
+		uprintf("done with delay\n");
 		tdm_state_transition(STATE_idle);
-		return 0;
-	} else { 
-		return TDM_DEBOUNCE_DELAY;
+		tdm_clear_tokens();
 	}
+	return 0;
 }
 
+static uint32_t tdm_loop_callback(uint32_t trigger_time, void* cb_arg) {
+	uprintf("play loop: t= %d\n", trigger_time);
+	tdm_play();
+	//since a delay ends tdm_play and schedules another one, looping needs to pause
+	// 
+	if (play_finished) {
+		tdm_reset_iterator(); // start loop at beginning
+		return TDM_DEBOUNCE_DELAY;
+	} else {
+		return 0;
+	}
+}
+void tdm_play_key(tdm_keypress_t* keypress) {
+	if(is_set(keypress, FLAG_pressed)) {
+		register_code(keypress->keycode);
+	} else if( !is_set(keypress, FLAG_pressed)) {
+		unregister_code(keypress->keycode);
+	}
+}
 /**
  * Play the dynamic macro.
  */
 void tdm_play() {
-	clear_keyboard();
-	layer_clear();
 	uprintf("temporal dynamic macro: playing slot %d \n", MACRO_id);
 	uprintf("play start: %d -> %d (Macro_iterator) %d\n", MACRO_start, MACRO_end, MACRO_iterator);
 	
 	//iterates until the end of the macro or until there's a delay
 	while (MACRO_iterator != MACRO_end) {
-		uprintf("iterator at %d = r%02dc%02d\n", MACRO_iterator, ((keyrecord_t*)MACRO_iterator)->event.key.col, ((keyrecord_t*)MACRO_iterator)->event.key.row);
-		process_record(MACRO_iterator);
+		uprintf("iter %d KC: %d, down? %d, delay: %d\n", MACRO_iterator, MACRO_iterator->keycode, (MACRO_iterator->flags)&FLAG_pressed, MACRO_iterator->delay_ms);
+		tdm_play_key(MACRO_iterator);
 		MACRO_iterator += MACRO_direction;
-		uint16_t delay = (MACRO_iterator->event.time) - ((MACRO_iterator-MACRO_direction)->event.time);
-		if(delay) {
-			uprintf("delaying: %d\n", delay);
-			//continue playing the macro after delaying, but don't block TODO: make sure this doesn't muck state / race
-			play_delay_token = defer_exec(delay, tdm_play_callback, NULL);
-			return;
+		if(MACRO_iterator->delay_ms) {
+			uprintf("delaying: %d\n", MACRO_iterator->delay_ms);
+			//continue playing or looping the macro after delaying, but don't block TODO: profiling
+			// use defer exec instead of wait so it's possible to cancel play/loop
+			DeferCallback tdm_continue = MACRO_current_state == STATE_looping ? tdm_loop_callback : tdm_delay_callback;
+			delay_token = defer_exec(MACRO_iterator->delay_ms, tdm_continue, NULL);
+			return; //skip clearing the token
 		} 	
 	}
-	// if (!delay) {
-	// 	cancel_deferred_exec(play_delay_token);
-		play_delay_token = INVALID_DEFERRED_TOKEN;
-	// }asdfgh
+	uprintf("play finished %d\n", play_finished);
+	play_finished = true;
 }
 
 // Stops playing (or looping), cancels the callback.
 static void tdm_play_stop(void) {
 	clear_keyboard();
 	layer_clear();
+	tdm_clear_tokens();
 	tdm_play_stop_user(MACRO_id);
-	if (loop_token != INVALID_DEFERRED_TOKEN) {
-		cancel_deferred_exec(loop_token);
-		loop_token = INVALID_DEFERRED_TOKEN;
-	}
-	if (play_delay_token != INVALID_DEFERRED_TOKEN) {
-		cancel_deferred_exec(play_delay_token);
-		play_delay_token = INVALID_DEFERRED_TOKEN;
-	}
 }
 
 static inline bool tdm_is_control_key(uint16_t keycode);
@@ -500,6 +597,8 @@ bool process_temporal_dynamic_macro(uint16_t keycode, keyrecord_t* record) {
 			State next_state = keycode_to_state(keycode);
 			tdm_state_transition(next_state);
 		} 
+	} else if (tdm_is_layer_key(keycode)) {
+		return true; // don't handle layer keys, only the resulting keycode
 	} else {
 		switch (MACRO_current_state) {
 			case STATE_idle:
@@ -507,39 +606,39 @@ bool process_temporal_dynamic_macro(uint16_t keycode, keyrecord_t* record) {
 				break;
 			case STATE_recording:
 				if(tdm_is_valid_key(keycode)) {
-					tdm_record_key(record);
+					tdm_record_key(keycode, record);
 				} else if(record->event.pressed){
 					tdm_state_transition(STATE_idle);
 					return !TDM_SILENT_INVALID_KEYS; // user decides if invalid keys continue processing
 				}
 				break;
 			case STATE_recording_delay:
-				if(record->event.pressed) {
-					if(tdm_is_valid_number(keycode)) {
-						tdm_record_delay(keycode);
-					} else {
-						tdm_state_transition(STATE_recording);
-						return !TDM_SILENT_INVALID_KEYS;
-					}
+				if (tdm_is_valid_number(keycode) && record->event.pressed) {
+					tdm_record_delay(keycode);
+				} else if (!record->event.pressed && !tdm_is_valid_number(keycode)) {
+					tdm_state_transition(STATE_recording);
+					return !TDM_SILENT_RECORDED_KEYS; //make sure the keyup is processed if keydown was in record_delay
 				}
 				break;
 			case STATE_selecting: 
-				if(record->event.pressed) {
-					if(tdm_is_valid_number(keycode)) {
-						tdm_select_macro(keycode);
-					} else {
-						tdm_state_transition(STATE_idle);
-						return !TDM_SILENT_INVALID_KEYS;
-					}
+				if(!record->event.pressed)
+					return !TDM_SILENT_RECORDED_KEYS;
+				if(tdm_is_valid_number(keycode)) {
+					tdm_select_macro(keycode);
+				} else {
+					tdm_state_transition(STATE_idle);
+					return !TDM_SILENT_INVALID_KEYS;
 				}
 				break;
-			// case STATE_playing:
-			// case STATE_looping: 
-			// 	if(record->event.pressed) {
-			// 		tdm_state_transition(STATE_idle);
-			// 		return !TDM_SILENT_INVALID_KEYS;
-			// 	}
-			// 	break;
+// #if TDM_EXIT_STATE_ON_ANY_KEY
+// 			case STATE_playing:
+// 			case STATE_looping: 
+// 				if(!record->event.pressed) {
+// 					tdm_state_transition(STATE_idle);
+// 					return !TDM_SILENT_INVALID_KEYS;
+// 				}
+// 				break;
+// #endif
 			default:
 				return true;
 		}
@@ -548,11 +647,21 @@ bool process_temporal_dynamic_macro(uint16_t keycode, keyrecord_t* record) {
 }
 
 static inline bool tdm_is_valid_key(uint16_t keycode) {
-	return true && tdm_is_valid_key_user(keycode);
+	return !tdm_is_control_key(keycode) && tdm_is_valid_key_user(keycode);
 }
 static inline bool tdm_is_valid_number(uint16_t keycode) {
 	return (keycode >= KC_1 && keycode <= KC_9) || keycode == KC_0
 	     ||(keycode >= KC_P1 && keycode <= KC_P9) || keycode == KC_P0;
+}
+static inline bool tdm_is_layer_key(uint16_t keycode) {
+	// uprintf("%d < kc < %d\n", QK_MOMENTARY, QK_MOMENTARY_MAX);
+	return(keycode > QK_MOMENTARY && keycode < QK_MOMENTARY_MAX) ||
+			(keycode > QK_TO && keycode < QK_TO_MAX) ||
+			(keycode > QK_TOGGLE_LAYER && keycode < QK_TOGGLE_LAYER_MAX) ||
+			(keycode > QK_LAYER_TAP_TOGGLE && keycode < QK_LAYER_TAP_TOGGLE_MAX) ||
+			(keycode > QK_ONE_SHOT_LAYER && keycode < QK_ONE_SHOT_LAYER_MAX) ||
+			(keycode > QK_TRI_LAYER_LOWER && keycode < QK_TRI_LAYER_UPPER) ||
+			(keycode == QK_ONE_SHOT_MOD);
 }
 
 static inline bool tdm_is_control_key(uint16_t keycode) {
@@ -580,8 +689,8 @@ void tdm_init_state_machine(void){
 	transition_matrix[STATE_recording][STATE_idle] = tdm_record_end;
 	transition_matrix[STATE_idle][STATE_playing] = tdm_play_start;
 	transition_matrix[STATE_playing][STATE_idle] = tdm_play_stop;
-	transition_matrix[STATE_idle][STATE_looping] = tdm_play_start;
-	transition_matrix[STATE_looping][STATE_looping] = tdm_play_start;
+	transition_matrix[STATE_idle][STATE_looping] = tdm_loop_start;
+	transition_matrix[STATE_looping][STATE_looping] = tdm_loop_start;
 	transition_matrix[STATE_looping][STATE_idle] = tdm_play_stop;
 	transition_matrix[STATE_idle][STATE_selecting] = tdm_select_start;
 	transition_matrix[STATE_selecting][STATE_idle] = tdm_select_end;
@@ -595,6 +704,11 @@ bool tdm_state_transition(State next_state) {
 		valid_transition = false;
 	} else {
 		uprintf("transitioning to state: %d\n", next_state);
+		uprintf("MacroEnds: %d[", MACRO_buffers[MACRO_id]);
+		for (int i = 0; i < TDM_NUM_MACROS; i++) {
+			uprintf("%d, ", MACRO_ends[i]);
+		}
+		uprintf("]\n");
 		MACRO_current_state = next_state;
 		transition();
 	}
@@ -606,6 +720,9 @@ void tdm_invalid_transition(State next_state){
 }
 
 void print_macros(void) {
+	// if(MACRO_iterator MACRO_ends[MACRO_id] == TDM_CURRENT_START(MACRO_id)) //update macro end if we're currently recording
+		MACRO_ends[MACRO_id] = MACRO_iterator; //since macro ends normally doesn't update until record end
+	uprintf("\n==========\n");
 	uprintf("MACRO_ends[%d] = [", TDM_NUM_MACROS);
 	for( int e; e < TDM_NUM_MACROS; e++) {
 		uprintf("%d,", MACRO_ends[e] - TDM_BUFFER_START(e));
@@ -613,31 +730,38 @@ void print_macros(void) {
 	uprintf("]\n");
 	int buffer_length = TDM_BUFFER_SIZE;
 	uprintf("%d\n", buffer_length);
-	for (int i = 0; i < (TDM_NUM_MACROS+1)/2; i++) {
-		keyrecord_t* buffer_start = MACRO_buffers[i];
-		uprintf("buffer #%d %d\n", i, &MACRO_buffers[i]);
-		// Print recorded key information
-		for (int j = 0; j < TDM_BUFFER_SIZE; j++) {
-			uprintf("r%02dc%02d,", buffer_start[j].event.key.col, buffer_start[j].event.key.row);
+	for (int i = 0; i < TDM_NUM_MACROS; i++) {
+		uprintf("\nMacro# %d\n", i);
+		for (tdm_keypress_t* iter = TDM_CURRENT_START(i); iter != MACRO_ends[i]; iter += DIRECTION(i)) {
+			uprintf("KC: %d, down? %d, delay: %d\n", iter->keycode, (iter->flags)&FLAG_pressed, iter->delay_ms);
 		}
-		uprintf("\n ");
-		// print the pointer indicators
-		for (int k = 0; k < TDM_BUFFER_SIZE; k++) {
-			// Print buffer's left macro end
-			if (&buffer_start[k] == MACRO_ends[i*2]) {
-				uprintf("^%d     ", i*2);
-			}// Print buffer's right macro end
-			else if (&buffer_start[k] == MACRO_ends[(i*2)+1]) {
-				uprintf("     %d^", (i*2)+1);  // Pointer for current macro's start
-			}
-			else if (&buffer_start[k] == MACRO_iterator) {  // Current iterator's position
-				uprintf("^i     ");
-			} else {
-				uprintf("       ");
-			}
-		}
-
-		// Print "macro X last recorded key"
-		uprintf("\n");
 	}
+	uprintf("==========\n");
+	// for (int i = 0; i < (TDM_NUM_MACROS+1)/2; i++) {
+	// 	tdm_keypress_t* buffer_start = MACRO_buffers[i];
+	// 	uprintf("buffer #%d %d\n", i, &MACRO_buffers[i]);
+	// 	// Print recorded key information
+	// 	for (int j = 0; j < TDM_BUFFER_SIZE; j++) {
+	// 		uprintf("%05d,", buffer_start[j].keycode);
+	// 	}
+	// 	uprintf("\n");
+	// 	// print the pointer indicators
+	// 	for (int k = 0; k < TDM_BUFFER_SIZE; k++) {
+	// 		// Print buffer's left macro end
+	// 		if (&buffer_start[k] == MACRO_ends[i*2]) {
+	// 			uprintf("^%dend ", i*2);
+	// 		}// Print buffer's right macro end
+	// 		else if (&buffer_start[k] == MACRO_ends[(i*2)+1]) {
+	// 			uprintf(" end%d^", (i*2)+1);  // Pointer for current macro's start
+	// 		}
+	// 		else if (&buffer_start[k] == MACRO_iterator) {  // Current iterator's position
+	// 			uprintf("^i[%d] ", k);
+	// 		} else {
+	// 			uprintf("     ,");
+	// 		}
+	// 	}
+
+	// 	// Print "macro X last recorded key"
+	// 	uprintf("\n");
+	// }
 }

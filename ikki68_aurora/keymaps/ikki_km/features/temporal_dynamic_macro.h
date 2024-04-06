@@ -48,7 +48,7 @@ extern "C" {
  * so 128 is considered a safe default.
  */
 #ifndef TDM_BUFFER_SIZE
-#	define TDM_BUFFER_SIZE 20
+#	define TDM_BUFFER_SIZE 50
 #endif
 
 //how many macros can be recorded. 2 macros in each buffer. I suggest this to be even
@@ -60,10 +60,14 @@ extern "C" {
 // if invalid keys pressed during recording output characters to OS
 #define TDM_SILENT_INVALID_KEYS true
 
+#define TDM_EXIT_STATE_ON_ANY_KEY true
+
+//TODO add 
+
 // milliseconds btw last tap and play/record start, tap in this time to select next macro
 // this can be 0 if you don't use tap select macro_id
 
-#define TDM_DEBOUNCE_DELAY 50
+#define TDM_DEBOUNCE_DELAY 100
 
 /**
  * Handler function for Temporal Dynamic Macro.
@@ -97,7 +101,7 @@ void tdm_led_blink(void);
 void tdm_rgb_user(void);
 void tdm_record_start_user(uint8_t macro_id);
 void tdm_play_user(uint8_t macro_id);
-void tdm_record_key_user(uint8_t macro_id, keyrecord_t *record);
+void tdm_record_key_user(uint8_t macro_id, uint16_t keycode);
 void tdm_record_end_user(uint8_t macro_id);
 void tdm_stop_recording(void);
 

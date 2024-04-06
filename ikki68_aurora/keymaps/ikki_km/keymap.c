@@ -36,7 +36,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 		_______, _______, _______, TDM_END, TDM_RECORD, TD(TIMER), _______, _______, _______, _______, TDM_PLAY, _______, RGB_TOG, TD(MACRO), _______, KC_BTN2,
 		KC_CAPS, _______, TDM_SELECT, TDM_DELAY, _______, _______, _______, _______, _______, TDM_LOOP, _______, _______, _______,
 		_______, KC_NO, _______, _______, _______, _______, _______, _______, _______, KC_WBAK, KC_WFWD, LCTL(KC_F), _______, KC_NO, KC_PGUP,
-		_______, _______, _______, KC_NO, LLOCK, KC_NO, _______, _______, _______, KC_HOME, KC_PGDN, KC_END
+		KC_NO, _______, _______, KC_NO, LLOCK, KC_NO, _______, _______, _______, KC_HOME, KC_PGDN, KC_END
 	),
 };
 
@@ -49,7 +49,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 	if (!process_temporal_dynamic_macro(keycode, record)) { return false; }
 	// if (!process_mouse_turbo_click(keycode, record, TURBO)) { return false; }
 	if (!process_macro(keycode, record)) { return false; }
-	
 	return true;
 };
 
