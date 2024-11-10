@@ -57,8 +57,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #define RGB_MODE_ALERT RGBLIGHT_MODE_ALTERNATING
 #define RGB_MODE_TESTING RGBLIGHT_MODE_STATIC_LIGHT
 void keyboard_post_init_user(void) {
-	debug_enable=true;
-	debug_keyboard=true;
+	// debug_enable=true;
+	// debug_keyboard=true;
 	tdm_init();
 	//rgblight_enable_noeeprom(); // enables Rgb, without saving settings
 	//rgblight_sethsv_noeeprom(180, 255, 255); // sets the color to teal/cyan without saving

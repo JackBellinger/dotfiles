@@ -166,8 +166,8 @@ alias -g H='|head'
 alias -g T='|tail'
 alias -g P='ps aux'
 alias -g G='|grep'
-#alias -g BG='2>&1 | tee log-$(datetime).out'
-
+alias -g BG='2>&1 | tee log-$(datetime).out'
+alias -g Q="| sed \"s/^/'/;s/$/'/\""
 alias c="clear"
 alias r="reset"
 alias q="exit"
