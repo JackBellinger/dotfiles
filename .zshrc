@@ -100,6 +100,7 @@ plugins=(
 colored-man-pages
 git
 npm
+poetry
 rust
 systemadmin
 web-search
@@ -177,6 +178,8 @@ alias ll="${aliases[l]} -l"
 alias lls="${aliases[l]} -l | sort -k9,9"
 
 alias psg="psgrep" #https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/systemadmin#functions
+
+alias rand="openssl rand -base64 20"
 
 alias zconf="vim ~/.zshrc"
 alias zsrc="source ~/.zshrc"
@@ -256,7 +259,7 @@ function ffmpeg_c() {
     esac
     echo "$encoding_lib: ${1%.*}.$2"
     ffmpeg -i "$1" -c:v "$encoding_lib" -strict experimental "${1%.*}.$2"
-}
+openssl rand -base64 12}
 
 
 function uz() {
@@ -291,3 +294,8 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 export PATH="$(nvm which current)/bin:$PATH"
+
+# Add these lines to the END of ~/.zshrc (or ~/.bashrc)
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
