@@ -1,0 +1,86 @@
+/* Custom CSS for Markdown Preview (Solarized Dark) */
+
+/* General body styling to match Solarized Dark's background/foreground */
+body {
+    background-color: #002b36; /* base03 */
+    color: #839496; /* base0 */
+}
+
+/* Headings - Using the same shades we set for the editor (approximately) */
+h1 {
+    color: #268bd2; /* Solarized Blue - lightest blue for H1 */
+    font-weight: bold;
+}
+h2 {
+    color: #1E75AF; /* Custom darker blue for H2 */
+    font-weight: bold;
+}
+h3 {
+    color: #3D78AA; /* Good contrast, but darker than H2 */
+    font-weight: bold;
+}
+h4 {
+    color: #2D608F; /* Good contrast, but darker than H3 */
+    font-weight: bold;
+}
+h5 {
+    color: #204A6B; /* Good contrast, but darker than H4 */
+    font-weight: bold;
+}
+h6 {
+    color: #102E44; /* Darkest blue for H6, very subtle */
+    font-weight: bold;
+}
+
+/* Bold Text */
+strong {
+    color: #b58900; /* Solarized Yellow */
+}
+
+/* Inline Code */
+/* Target `code` elements that are within paragraphs or list items */
+p code, li code, blockquote code {
+    color: #2aa198; /* Solarized Cyan */
+    background-color: #073642; /* base02 - subtle background */
+    padding: 0.2em 0.4em; /* Add some padding for visual separation */
+    border-radius: 3px;
+    white-space: nowrap; /* Prevent breaking inline code */
+}
+
+/* Fenced Code Blocks */
+pre code {
+    color: #2aa198; /* Solarized Cyan */
+    background-color: #073642; /* base02 */
+    padding: 1em;
+    border-radius: 4px;
+    overflow-x: auto; /* Ensure horizontal scrolling for long lines */
+}
+
+/* Links */
+a {
+    color: #268bd2; /* Solarized Blue */
+    text-decoration: underline; /* Emphasize links */
+}
+
+/* List Items (Both marker and text content) */
+/* This targets the entire list item's text color */
+ul li, ol li {
+    color: #859900; /* Solarized Green */
+}
+
+/* Blockquotes */
+blockquote {
+    color: #93a1a1; /* base1 */
+    font-style: italic;
+    border-left: 0.25em solid #586e75; /* base01 for border */
+    padding-left: 1em;
+    margin-left: 0;
+}
+
+/* Horizontal Rule */
+hr {
+    background-color: #586e75; /* base01 */
+    border: none;
+    height: 1px;
+    margin: 1.5em 0;
+}
