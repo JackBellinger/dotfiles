@@ -1,0 +1,19 @@
+{
+	"files.associations": {
+		"wrangler.json": "jsonc"
+	},
+	"cSpell.words": [
+		"daygrid",
+		"GHSA",
+		"prebuild",
+		"randomblob",
+		"shiki",
+		"unixepoch"
+	],
+	// Use project .editorconfig for indentation/formatting
+	"editor.useTabStops": true,
+	"editor.detectIndentation": false,
+	"editor.insertSpaces": false,
+	"editor.tabSize": 3,
+	// Prettier settings are managed via .prettierrc.json in the repo
+}

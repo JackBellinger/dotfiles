@@ -1,0 +1,176 @@
+/* Dark theme (matches your existing solarized-dark-md-preview.css) */
+@media (prefers-color-scheme: dark) {
+  /* General body styling to match Solarized Dark's background/foreground */
+  body {
+      background-color: #002b36; /* base03 */
+      color: #839496; /* base0 */
+  }
+
+  /* Headings - Using the same shades we set for the editor (approximately) */
+  h1 { color: #268bd2; font-weight: bold; }
+  h2 { color: #1E75AF; font-weight: bold; }
+  h3 { color: #3D78AA; font-weight: bold; }
+  h4 { color: #2D608F; font-weight: bold; }
+  h5 { color: #204A6B; font-weight: bold; }
+  h6 { color: #102E44; font-weight: bold; }
+
+  /* Bold Text */
+  strong { color: #b58900; }
+
+  /* Inline Code: only target inline code (avoid matching <pre><code>) */
+  p > code,
+  li > code,
+  blockquote > code {
+      color: inherit;
+      background-color: #073642; /* base02 - subtle background */
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      white-space: nowrap; /* keep inline code on one line */
+  }
+
+  /* Fenced Code Blocks: explicitly preserve formatting and avoid overriding token colors */
+  pre, pre code {
+      background-color: #073642; /* base02 */
+      padding: 1em;
+      border-radius: 4px;
+      overflow-x: auto;
+      white-space: pre; /* preserve line breaks and spacing */
+  }
+
+  /* Ensure fenced code inside list items does NOT inherit the list color,
+     allowing the preview's token colors to show. */
+  ul li pre,
+  ol li pre,
+  li pre,
+  ul li pre code,
+  ol li pre code,
+  li pre code {
+      color: initial !important;
+  }
+
+  /* Links */
+  a { color: #268bd2; text-decoration: underline; }
+
+  /* List Items (Both marker and text content) */
+  ul li, ol li { color: #859900; }
+
+  /* Blockquotes */
+  blockquote {
+      color: #93a1a1;
+      font-style: italic;
+      border-left: 0.25em solid #586e75;
+      padding-left: 1em;
+      margin-left: 0;
+  }
+
+  /* Horizontal Rule */
+  hr {
+      background-color: #586e75;
+      border: none;
+      height: 1px;
+      margin: 1.5em 0;
+  }
+}
+
+/* Light theme (Default Light Modern) — green-tone headers with tonal differences */
+@media (prefers-color-scheme: light) {
+  /* Base body */
+  body {
+      background-color: #ffffff;
+      color: #24292f; /* readable dark text for light theme */
+  }
+
+  /* Headings: progressive tonal greens (no red) */
+  h1 {
+      color: #0B3D2E; /* H1 — deep, anchor-like green */
+      font-weight: bold;
+  }
+  h2 {
+      color: #154734; /* H2 — forest green (darker) */
+      font-weight: bold;
+  }
+  h3 {
+      color: #0DA77A; /* H3 — medium green */
+      font-weight: bold;
+  }
+  h4 {
+      color: #3FC39A; /* H4 — softer teal-green */
+      font-weight: bold;
+  }
+  h5 {
+      color: #7ED957; /* H5 — warm light green */
+      font-weight: bold;
+  }
+  h6 {
+      color: #5D6C64; /* H6 — muted gray-green for subtle headings */
+      font-weight: bold;
+  }
+
+  /* Bold Text */
+  strong { color: #0B5FFF; }
+
+  /* Inline Code: only target inline code (avoid matching <pre><code>) */
+  p > code,
+  li > code,
+  blockquote > code {
+      color: inherit;
+      background-color: #f3f4f6; /* light subtle background */
+      padding: 0.18em 0.36em;
+      border-radius: 3px;
+      white-space: nowrap;
+  }
+
+  /* Fenced Code Blocks: explicitly preserve formatting and avoid overriding token colors */
+  pre, pre code {
+      background-color: #f6f8fa;
+      padding: 1em;
+      border-radius: 4px;
+      overflow-x: auto;
+      white-space: pre; /* preserve line breaks and spacing */
+  }
+
+  /* Ensure fenced code inside list items does NOT inherit the list color,
+     allowing the preview's token colors to show. */
+  ul li pre,
+  ol li pre,
+  li pre,
+  ul li pre code,
+  ol li pre code,
+  li pre code {
+      color: initial !important;
+  }
+
+  /* Links */
+  a { color: #006AB1; text-decoration: underline; }
+
+  /* List Items: keep readable neutral text, markers can be greenish */
+  ul li, ol li {
+      color: #333333;
+  }
+  ul li::marker, ol li::marker {
+      color: #6A9955;
+  }
+
+  /* Blockquotes */
+  blockquote {
+      color: #4b5563;
+      font-style: italic;
+      border-left: 0.25em solid #cbd5e1;
+      padding-left: 1em;
+      margin-left: 0;
+      background: transparent;
+  }
+
+  /* Horizontal Rule */
+  hr {
+      background-color: #e6edf3;
+      border: none;
+      height: 1px;
+      margin: 1.5em 0;
+  }
+}
+
+/* Fallback if prefers-color-scheme isn't supported: default to light styling */
+@media (prefers-color-scheme: no-preference), (prefers-color-scheme: light) {
+  /* The light block above will already apply; keep this here as explicit fallback if needed */
+}

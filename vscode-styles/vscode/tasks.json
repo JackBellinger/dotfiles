@@ -1,0 +1,33 @@
+{
+  "$schema": "vscode://schemas/tasks",
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "typecheck",
+      "type": "shell",
+      "command": "npm run typecheck",
+      "problemMatcher": ["$tsc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "typecheck:watch",
+      "type": "shell",
+      "command": "npm run typecheck:watch",
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "base": "$tsc-watch",
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "File change detected.",
+            "endsPattern": "Found \\d+ errors?\\. Watching for file changes\\."
+          }
+        }
+      ],
+      "group": "build"
+    }
+  ]
+}
