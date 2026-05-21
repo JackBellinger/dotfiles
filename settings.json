@@ -1,12 +1,13 @@
 {
-    "cloudcode.updateChannel": "Insiders",
     "github.copilot.enable": {
         "*": true,
         "plaintext": true,
+		  "yaml": false,
+		  "json": false,
+		  "dotenv": false,
+		  "properties": false,
         "markdown": false,
         "scminput": false
-    },
-    "github.copilot.advanced": {
     },
     "telemetry.telemetryLevel": "off",
     "workbench.enableExperiments": false,
@@ -16,6 +17,16 @@
 
 // === Whitespace ===
     "editor.insertSpaces": false,
+	 "[markdown]": {
+		"editor.insertSpaces": true,
+		"editor.tabSize": 2,
+		"files.trimTrailingWhitespace": false,
+		"editor.wordWrap": "bounded",
+	},
+	"[yaml]": {
+		"editor.insertSpaces": true,
+		"editor.tabSize": 2
+	},
     "editor.comments.insertSpace": true,
     "editor.stickyTabStops": true,
     "editor.renderWhitespace": "all",
@@ -31,7 +42,6 @@
     "workbench.editor.scrollToSwitchTabs": true,
     "workbench.editor.tabCloseButton": "off",
     "workbench.editor.wrapTabs": true,
-    "workbench.editor.tabSizing": "shrink",
     // Zen Mode
     "zenMode.fullScreen": false,
     "zenMode.centerLayout": false,
@@ -46,7 +56,7 @@
     "workbench.settings.openDefaultKeybindings": true,
     
     // === Suggestions ===
-    "editor.inlineSuggest.enabled": true,
+    "editor.inlineSuggest.enabled": false,
     
     // === Themes ===
     "editor.fontFamily": "FiraCode Nerd Font",
@@ -181,13 +191,100 @@
                     }
                 }
             ]
+        },
+        "[Default Light Modern]": {
+            "textMateRules": [
+                // 1. Bold headings/content — darker blue for emphasis
+                {
+                    "scope": "markup.bold.markdown",
+                    "settings": {
+                        "foreground": "#0B5FFF", // vivid VS Light blue
+                        "fontStyle": "bold"
+                    }
+                },
+                // 2. Italic
+                {
+                    "scope": "markup.italic.markdown",
+                    "settings": {
+                        "foreground": "#0066B0" // slightly darker blue
+                    }
+                },
+                // 3. Inline code (distinct from full code blocks)
+                {
+                    "scope": "markup.inline.raw.string.markdown",
+                    "settings": {
+                        "foreground": "#795E26" // VS-light-style inline-code brown
+                    }
+                },
+                // 4. Links
+                {
+                    "scope": "markup.underline.link.markdown",
+                    "settings": {
+                        "foreground": "#006AB1", // link-blue
+                        "fontStyle": "underline"
+                    }
+                },
+                // 5. List item marker color
+                {
+                    "scope": "punctuation.definition.list.begin.markdown",
+                    "settings": {
+                        "foreground": "#6A9955" // green-ish marker
+                    }
+                },
+                // 6. List item content
+                {
+                    "scope": "markup.list.unnumbered.markdown, markup.list.ordered.markdown",
+                    "settings": {
+                        "foreground": "#333333" // dark gray for readability
+                    }
+                },
+                // --- Headings: green-tone palette with clear tonal differences ---
+                {
+                    "scope": "heading.1.markdown entity.name.section.markdown, heading.1.markdown punctuation.definition.heading.markdown",
+                    "settings": {
+                        "foreground": "#041712", // H1 — deep, anchor-like green
+                        "fontStyle": "bold underline"
+                    }
+                },
+                {
+                    "scope": "heading.2.markdown entity.name.section.markdown, heading.2.markdown punctuation.definition.heading.markdown",
+                    "settings": {
+                        "foreground": "#154734", // H2 — forest green (darker)
+                        "fontStyle": "bold"
+                    }
+                },
+                {
+                    "scope": "heading.3.markdown entity.name.section.markdown, heading.3.markdown punctuation.definition.heading.markdown",
+                    "settings": {
+                        "foreground": "#0DA77A", // H3 — medium green
+                        "fontStyle": "bold"
+                    }
+                },
+                {
+                    "scope": "heading.4.markdown entity.name.section.markdown, heading.4.markdown punctuation.definition.heading.markdown",
+                    "settings": {
+                        "foreground": "#3FC39A", // H4 — softer teal-green
+                        "fontStyle": "bold"
+                    }
+                },
+                {
+                    "scope": "heading.5.markdown entity.name.section.markdown, heading.5.markdown punctuation.definition.heading.markdown",
+                    "settings": {
+                        "foreground": "#7ED957", // H5 — warm light green
+                        "fontStyle": "bold"
+                    }
+                },
+                {
+                    "scope": "heading.6.markdown entity.name.section.markdown, heading.6.markdown punctuation.definition.heading.markdown",
+                    "settings": {
+                        "foreground": "#5D6C64", // H6 — muted gray-green for subtle headings
+                        "fontStyle": "bold"
+                    }
+                }
+            ]
         }
     },
-    "markdown.styles": ["./solarized-dark-md-preview.css"],
-    "[markdown]": {
-        "files.trimTrailingWhitespace": false,
-        "editor.wordWrap": "bounded",
-    },
+    "markdown.styles": ["./.vscode/markdown-preview-theme.css"],
 // === Rust ===
     "[rust]": {
         "editor.formatOnSave": true,
@@ -253,9 +350,6 @@
     "editor.inlayHints.enabled": "off",
     "editor.tabSize": 3,
     "editor.indentSize": "tabSize",
-    "[jsonc]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
     "sqltools.highlightQuery": false,
     "sqltools.queryParams.enableReplace": true,
     "sqltools.format": {
@@ -267,7 +361,7 @@
     },
     "haskell.manageHLS": "PATH",
     "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
+        "editor.defaultFormatter": "vscode.typescript-language-features"
     },
     "editor.trimAutoWhitespace": false,
     "workbench.editor.tabActionCloseVisibility": false,
@@ -315,43 +409,247 @@
     },
     "extensions.autoUpdate": "onlyEnabledExtensions",
     "C_Cpp.intelliSenseEngine": "disabled",
-    "silabs.loggingFolderPath": "/tmp/silabs_extension",
     "geminicodeassist.updateChannel": "Insiders",
     "diffEditor.codeLens": true,
     "geminicodeassist.enableTelemetry": false,
     "geminicodeassist.inlineSuggestions.enableAuto": false,
     "diffEditor.experimental.showMoves": true,
-    "workbench.sideBar.location": "right",
     "cSpell.userWords": [
-        "automations",
-        "Bellinger",
-        "blockquotes",
-        "Falkor",
-        "frontmatter",
-        "frontmatters",
-        "Logseq",
-        "pagespeed",
-        "Refactorable",
-        "reqs",
-        "Taskie"
-    ],
+		"arakah",
+		"Authentik",
+		"AUTOINCREMENT",
+		"automations",
+		"Backcountry",
+		"Banfield",
+		"Bellinger",
+		"blockquotes",
+		"brulee",
+		"Crunchyroll",
+		"Deltatime",
+		"Dexie",
+		"Falkor",
+		"Fediverse",
+		"finom",
+		"frontmatter",
+		"frontmatters",
+		"gltf",
+		"Logseq",
+		"Makefiles",
+		"Makerspace",
+		"Millis",
+		"miniflare",
+		"nodenext",
+		"pagespeed",
+		"Refactorable",
+		"replicon",
+		"reqs",
+		"shadcn",
+		"signup",
+		"spotlightjs",
+		"superforms",
+		"sveltekit",
+		"svix",
+		"Taskie",
+		"unredacted",
+		"WASD",
+		"xpbd"
+	],
     "chat.editor.wordWrap": "on",
     "geminicodeassist.project": "gen-lang-client-0700379828",
     "geminicodeassist.chat.automaticScrolling": false,
     "editor.fontWeight": "100",
+    "cSpell.ignoreWords": [
+        "Maha"
+    ],
+    "geminicodeassist.chat.defaultCodeBlockDisplay": "Expanded",
+    "geminicodeassist.displayInlineContextHint": false,
+    "geminicodeassist.inlineSuggestions.nextEditPredictions": false,
+    "geminicodeassist.chat.changeView": "Default diff view",
+    "window.autoDetectColorScheme": true,
+    "editor.inlineSuggest.experimental.emptyResponseInformation": false,
+    "chat.mcp.gallery.enabled": true,
+    "markdownlint.config": {
+        // All rules explicitly listed with typical/default settings.
+        // Edit any entry to enable/disable or change options.
+        // Rules are keyed by their MD### identifier.
 
-    //"settings.cycle": [
-    //    {
-    //        "id": "colorTheme", // must be unique
-    //        "overrideWorkspaceSettings": false,
-    //        "values": [
-    //            {
-    //                "workbench.colorTheme": "Default Dark+"
-    //            },
-    //            {
-    //                "workbench.colorTheme": "Default Light+"
-    //            }
-    //        ]
-    //    }
-    //],
+        "MD001": true, // heading levels should only increment by one level at a time
+        "MD002": true, // first heading should be a top level heading
+        "MD003": { "style": "consistent" }, // heading style
+        "MD004": { "style": "dash" }, // unordered list style
+        "MD005": true, // inconsistent indentation for list items at the same level
+        "MD006": { "style": "consistent" }, // bland list marker usage
+        "MD007": false, // unordered list indentation
+        "MD008": { "space": 1 }, // no trailing spaces
+          // MD009/no-trailing-spaces : Trailing spaces : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md009.md
+        "MD009": false,
+		//   {
+      //       // Spaces for line break
+      //       "br_spaces": 2,
+      //       // Allow spaces for empty lines in list items
+      //       "list_item_empty_lines": false,
+      //       // Include unnecessary breaks
+      //       "strict": false
+      //   },
+          // MD010/no-hard-tabs : Hard tabs : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md010.md
+        "MD010": {
+            // Include code blocks
+            "code_blocks": false,
+            // Fenced code languages to ignore
+            "ignore_code_languages": [],
+            // Number of spaces for each hard tab
+            "spaces_per_tab": 3
+        },
+        "MD011": true, // no inline HTML
+        "MD012": true, // multiple consecutive blank lines
+          // MD013/line-length : Line length : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md013.md
+        "MD013": false,
+        // {
+        //     // Number of characters
+        //     "line_length": 300,
+        //     // Number of characters for headings
+        //     "heading_line_length": 80,
+        //     // Number of characters for code blocks
+        //     "code_block_line_length": 120,
+        //     // Include code blocks
+        //     "code_blocks": true,
+        //     // Include tables
+        //     "tables": true,
+        //     // Include headings
+        //     "headings": true,
+        //     // Strict length checking
+        //     "strict": false,
+        //     // Stern length checking
+        //     "stern": false
+        // },
+        "MD014": true, // dollar signs used before commands without showing output
+        "MD015": true, // horizontal rule style
+        "MD016": true, // hanging punctuation in headings
+        "MD017": true, // no space after hash in headers
+        "MD018": true, // no space after hash on atx header
+        "MD019": true, // no multiple spaces after hash on atx header
+        "MD020": true, // no missing space after hash atx header
+        "MD021": true, // no duplicate headings
+          // MD022/blanks-around-headings : Headings should be surrounded by blank lines : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md022.md
+        "MD022": {
+            // Blank lines above heading
+            "lines_above": 1,
+            // Blank lines below heading
+            "lines_below": 0
+        },
+        "MD023": true, // headings must be surrounded by blank lines (alternate)
+        "MD024": false, // multiple headings with same content
+        "MD025": true, // single top level heading in the document
+        "MD026": true, // trailing punctuation in heading
+        "MD027": true, // multiple spaces after blockquote symbol
+        "MD028": true, // blank line inside blockquote
+        "MD029": { "style": "ordered" }, // ordered list item prefix
+        "MD030": { "ul_single": 1, "ol_single": 1, "ol_multi": 1, "ul_multi": 1 }, // spaces after list markers (default tolerant)
+        "MD031": false, // fenced code blocks should be surrounded by blank lines
+        "MD032": false, // lists should be surrounded by blank lines
+        "MD033": { "allowed_elements": [] }, // inline HTML (empty = disallow)
+        "MD034": false, // bare URL used
+        "MD035": { "style": "---" }, // horizontal rule style (default '---')
+        "MD036": false, // emphasis used instead of heading
+        "MD037": true, // spaces inside emphasis markers
+        "MD038": true, // spaces inside code span elements
+        "MD039": true, // spaces inside link text
+        "MD040": true, // fenced code blocks should have a language specified
+        "MD041": true, // first line should be a top level heading
+        "MD042": true, // no empty links
+        "MD043": true, // required heading levels in a document (if used)
+        "MD044": true, // proper names (extension-specific)
+        "MD045": true, // consistent emphasis character
+        "MD046": {"style": "fenced"}, // code block style
+        "MD047": true, // files should end with a single newline
+        // MD048/code-fence-style : Code fence style : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md048.md
+        "MD048": {
+            // Code fence style
+            "style": "backtick"
+        },
+        // MD049/emphasis-style : Emphasis style : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md049.md
+        "MD049": {
+            // Emphasis style
+            "style": "consistent"
+        },
+        // MD050/strong-style : Strong style : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md050.md
+        "MD050": {
+            // Strong style
+            "style": "consistent"
+        },
+        // MD051/link-fragments : Link fragments should be valid : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md051.md
+        "MD051": {
+            // Ignore case of fragments
+            "ignore_case": false,
+            // Pattern for ignoring additional fragments
+            "ignored_pattern": ""
+        },
+        // MD052/reference-links-images : Reference links and images should use a label that is defined : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md052.md
+        "MD052": {
+            // Ignored link labels
+            "ignored_labels": [
+            "x"
+            ],
+            // Include shortcut syntax
+            "shortcut_syntax": false
+        },
+        // MD053/link-image-reference-definitions : Link and image reference definitions should be needed : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md053.md
+        "MD053": {
+            // Ignored definitions
+            "ignored_definitions": [
+            "//"
+            ]
+        },
+        // MD054/link-image-style : Link and image style : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md054.md
+        "MD054": {
+            // Allow autolinks
+            "autolink": true,
+            // Allow inline links and images
+            "inline": true,
+            // Allow full reference links and images
+            "full": true,
+            // Allow collapsed reference links and images
+            "collapsed": true,
+            // Allow shortcut reference links and images
+            "shortcut": true,
+            // Allow URLs as inline links
+            "url_inline": true
+        },
+        // MD055/table-pipe-style : Table pipe style : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md055.md
+        "MD055": {
+            // Table pipe style
+            "style": "consistent"
+        },
+        // MD056/table-column-count : Table column count : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md056.md
+        "MD056": true,
+        // MD058/blanks-around-tables : Tables should be surrounded by blank lines : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md058.md
+        "MD058": true,
+        // MD059/descriptive-link-text : Link text should be descriptive : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md059.md
+        "MD059": {
+            // Prohibited link texts
+            "prohibited_texts": [
+            "click here",
+            "here",
+            "link",
+            "more"
+            ]
+        },
+        // MD060/table-column-style : Table column style : https://github.com/DavidAnson/markdownlint/blob/v0.39.0/doc/md060.md
+        "MD060": {
+            // Table column style
+            "style": "any"
+        },
+        // Extra/behavioral settings (commonly used by markdownlint CLI / extension)
+        // They are included here so you can tweak them in one place.
+        // "default": true,
+        // "files": ["**/*.md", "**/*.markdown", "**/*.mdx"],
+    },
+    "js/ts.preferences.organizeImports": {
+        
+    },
+	"editor.detectIndentation": false,
+	"chat.agent.maxRequests": 250,
+	"github.copilot.chat.tools.memory.enabled": true,
+	"workbench.editor.pinnedTabsOnSeparateRow": true,
+	"github.copilot.nextEditSuggestions.enabled": true,
 }
